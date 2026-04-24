@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WasteLess</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="api.service.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins', sans-serif;
+}
+
+html{scroll-behavior:smooth;}
+
+body{
+min-height:100vh;
+overflow-x:hidden;
+background:linear-gradient(180deg,#0b2e13,#1b5e20,#66bb6a);
+color:white;
+}
+
+
+.top-nav{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 10%;
+background:rgba(0,0,0,0.25);
+backdrop-filter:blur(12px);
+z-index:20;
+border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.top-nav .logo{
+font-size:20px;
+font-weight:700;
+color:#a5d6a7;
+}
+
+.nav-links{
+display:flex;
+gap:18px;
+}
+
+.nav-links a{
+color:#e8f5e9;
+text-decoration:none;
+font-size:14px;
+transition:0.3s;
+}
+
+.nav-links a:hover{
+color:#a5d6a7;
+}
+
+
+.hero{
+min-height:100vh;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:60px 10%;
+padding-top:90px;
+position:relative;
+z-index:3;
+}
+
+.hero-text h1{
+font-size:75px;
+font-weight:800;
+background:linear-gradient(90deg,#a5d6a7,#66bb6a,#c8e6c9);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.hero-text p{
+max-width:520px;
+margin-top:15px;
+color:#e8f5e9;
+line-height:1.7;
+}
+
+.buttons{
+margin-top:25px;
+display:flex;
+gap:12px;
+}
+
+.btn{
+padding:13px 26px;
+border-radius:30px;
+border:none;
+cursor:pointer;
+font-weight:600;
+}
+
+.btn.primary{background:linear-gradient(135deg,#2e7d32,#43a047);color:white;}
+.btn.explore{background:rgba(255,255,255,0.15);color:#e8f5e9;backdrop-filter:blur(10px);}
+
+
+.hero-box{
+flex:1;
+height:420px;
+position:relative;
+}
+
+.card{
+position:absolute;
+width:170px;
+padding:16px;
+border-radius:16px;
+background:rgba(255,255,255,0.15);
+backdrop-filter:blur(12px);
+text-align:center;
+}
+
+.c1{top:20px;left:40px;}
+.c2{top:160px;right:40px;}
+.c3{bottom:20px;left:90px;}
+
+
+#explore{
+min-height:100vh;
+padding:90px 10%;
+background:rgba(0,0,0,0.25);
+backdrop-filter:blur(12px);
+text-align:center;
+position:relative;
+z-index:2;
+}
+
+#explore h2{
+font-size:38px;
+margin-bottom:10px;
+background:linear-gradient(90deg,#a5d6a7,#ffffff);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.eco-grid{
+margin-top:50px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:28px;
+max-width:1100px;
+margin:auto;
+}
+
+.eco-card{
+background:rgba(255,255,255,0.12);
+padding:25px 20px;
+border-radius:15px;
+backdrop-filter:blur(12px);
+transition:0.3s;
+text-align:center;
+}
+
+.eco-card:hover{
+transform:translateY(-6px) scale(1.03);
+}
+
+.eco-icon{font-size:32px;margin-bottom:12px;}
+.eco-title{font-size:16px;font-weight:600;margin-bottom:8px;}
+.eco-desc{font-size:13px;color:#e8f5e9;opacity:0.8;line-height:1.4;}
+
+
+#about{
+min-height:60vh;
+padding:100px 10%;
+text-align:center;
+background:rgba(0,0,0,0.25);
+backdrop-filter:blur(12px);
+}
+
+#about h2{
+font-size:38px;
+margin-bottom:20px;
+color:#a5d6a7;
+}
+
+#about p{
+max-width:850px;
+margin:auto;
+line-height:1.9;
+color:#e8f5e9;
+font-size:15px;
+}
+
+
+.about-stats{
+margin-top:50px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+max-width:1100px;
+margin-left:auto;
+margin-right:auto;
+}
+
+.stat-box{
+background:rgba(255,255,255,0.12);
+padding:25px;
+border-radius:15px;
+backdrop-filter:blur(12px);
+text-align:center;
+transition:0.3s;
+}
+
+.stat-box:hover{
+transform:translateY(-6px) scale(1.03);
+}
+
+.stat-number{
+font-size:32px;
+font-weight:700;
+color:#a5d6a7;
+}
+
+.stat-label{
+font-size:13px;
+margin-top:6px;
+opacity:0.85;
+}
+
+
+.about-features{
+margin-top:50px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+max-width:1100px;
+margin-left:auto;
+margin-right:auto;
+}
+
+.feature-box{
+background:rgba(255,255,255,0.12);
+padding:22px;
+border-radius:15px;
+backdrop-filter:blur(12px);
+transition:0.3s;
+}
+
+.feature-box:hover{
+transform:translateY(-6px);
+}
+
+.feature-title{
+font-weight:600;
+margin-bottom:8px;
+color:#c8e6c9;
+}
+
+.feature-desc{
+font-size:13px;
+opacity:0.85;
+line-height:1.5;
+}
+
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+display:flex;
+justify-content:center;
+align-items:center;
+opacity:0;
+pointer-events:none;
+transition:.4s;
+z-index:10;
+}
+
+.modal.active{
+opacity:1;
+pointer-events:auto;
+}
+
+.auth-container{
+width:780px;
+max-width:92%;
+min-height:500px;
+display:flex;
+border-radius:22px;
+overflow:hidden;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+}
+
+.left-panel{
+flex:1;
+padding:45px;
+background:linear-gradient(135deg,#1b5e20,#2e7d32);
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+
+.left-panel h1{
+font-size:38px;
+color:#a5d6a7;
+}
+
+.right-panel{
+flex:1;
+padding:45px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+
+.form-box{
+display:none;
+width:100%;
+}
+
+.form-box.active{
+display:block;
+}
+
+.form-box h2{
+margin-bottom:20px;
+}
+
+.form-box input{
+width:100%;
+padding:12px;
+margin-bottom:12px;
+border-radius:10px;
+border:none;
+outline:none;
+}
+
+.auth-btn{
+width:100%;
+padding:12px;
+background:#2e7d32;
+color:white;
+border:none;
+border-radius:10px;
+cursor:pointer;
+}
+
+.switch{
+margin-top:10px;
+font-size:13px;
+color:#c8e6c9;
+cursor:pointer;
+text-align:center;
+}
+
+.switch:hover{
+text-decoration:underline;
+}
+
+/* Password field with toggle */
+.password-field{
+position:relative;
+}
+
+.password-field input{
+width:100%;
+padding:12px;
+padding-right:40px;
+margin-bottom:12px;
+border-radius:10px;
+border:none;
+outline:none;
+}
+
+.toggle-password{
+position:absolute;
+right:12px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+font-size:14px;
+opacity:0.7;
+}
+
+.toggle-password:hover{
+opacity:1;
+}
+
+/* Password requirements */
+.password-requirements{
+font-size:11px;
+color:#a5d6a7;
+margin-bottom:12px;
+padding:10px;
+background:rgba(46,125,50,0.2);
+border-radius:8px;
+}
+
+.password-requirements ul{
+list-style:none;
+margin:0;
+padding:0;
+}
+
+.password-requirements li{
+margin:3px 0;
+padding-left:18px;
+position:relative;
+}
+
+.password-requirements li::before{
+content:"○";
+position:absolute;
+left:0;
+}
+
+.password-requirements li.valid{
+color:#66bb6a;
+}
+
+.password-requirements li.valid::before{
+content:"●";
+}
+
+/* Forgot password link */
+.forgot-password{
+font-size:12px;
+color:#a5d6a7;
+cursor:pointer;
+text-align:right;
+margin-bottom:12px;
+}
+
+.forgot-password:hover{
+text-decoration:underline;
+}
+
+/* Loading state */
+.auth-btn.loading{
+opacity:0.7;
+pointer-events:none;
+}
+
+.auth-btn.loading::after{
+content:"";
+display:inline-block;
+width:12px;
+height:12px;
+border:2px solid white;
+border-top-color:transparent;
+border-radius:50%;
+animation:spin 0.8s linear infinite;
+margin-left:8px;
+vertical-align:middle;
+}
+
+@keyframes spin{
+to{transform:rotate(360deg);}
+}
+
+/* Forgot password modal */
+#forgotPasswordModal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+z-index:1000;
+justify-content:center;
+align-items:center;
+}
+
+#forgotPasswordModal.active{
+display:flex;
+}
+
+.forgot-modal-content{
+background:#1b5e20;
+padding:30px;
+border-radius:15px;
+width:90%;
+max-width:400px;
+text-align:center;
+}
+
+.forgot-modal-content h3{
+margin-bottom:20px;
+}
+
+.forgot-modal-content input{
+width:100%;
+padding:12px;
+margin-bottom:12px;
+border-radius:10px;
+border:none;
+outline:none;
+}
+
+.forgot-modal-content button{
+width:100%;
+padding:12px;
+background:#2e7d32;
+color:white;
+border:none;
+border-radius:10px;
+cursor:pointer;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<nav class="top-nav">
+<div class="logo" style="display:flex;align-items:center;gap:10px;">
+  <img src="logo.png" alt="WasteLess Logo" style="height:38px;width:auto;display:inline-block;vertical-align:middle;">
+  <span>WasteLess</span>
+</div>
+<div class="nav-links">
+<a href="#explore">Explore</a>
+<a href="#about">About</a>
+<a href="#" onclick="openModal()">Login</a>
+</div>
+</nav>
+
+<section class="hero">
+<div class="hero-text">
+<h1>WasteLess</h1>
+<p>Smart eco platform for reducing food waste and building sustainable habits.</p>
+
+<div class="buttons">
+<button class="btn primary" onclick="openModal()">Get Started</button>
+<button class="btn explore" onclick="document.getElementById('explore').scrollIntoView({behavior:'smooth'})">Explore</button>
+</div>
+</div>
+
+<div class="hero-box">
+<div class="card c1">Waste Saved<br><b>24 kg</b></div>
+<div class="card c2">Users<br><b>1245</b></div>
+<div class="card c3">CO₂ Reduced<br><b>187 kg</b></div>
+</div>
+</section>
+
+<section id="explore">
+<h2>Explore</h2>
+
+<div class="eco-grid">
+<div class="eco-card"><div class="eco-icon">🍃</div><div class="eco-title">Food Tracking</div><div class="eco-desc">Monitor your food consumption and reduce waste efficiently.</div></div>
+<div class="eco-card"><div class="eco-icon">♻️</div><div class="eco-title">Recycle Tips</div><div class="eco-desc">Learn how to properly recycle and reuse materials.</div></div>
+<div class="eco-card"><div class="eco-icon">🌱</div><div class="eco-title">Sustainability</div><div class="eco-desc">Build eco-friendly habits for a greener future.</div></div>
+<div class="eco-card"><div class="eco-icon">🥗</div><div class="eco-title">Meal Planning</div><div class="eco-desc">Plan meals to avoid unnecessary food waste and save money.</div></div>
+<div class="eco-card"><div class="eco-icon">📊</div><div class="eco-title">Waste Analytics</div><div class="eco-desc">Track your daily waste reduction progress.</div></div>
+<div class="eco-card"><div class="eco-icon">🌍</div><div class="eco-title">Eco Impact</div><div class="eco-desc">See your environmental contribution in real time.</div></div>
+</div>
+</section>
+
+<section id="about">
+<h2>About WasteLess</h2>
+
+<p>
+Every action counts. WasteLess helps you cut food waste and lower your environmental footprint—one habit at a time
+</p>
+
+
+<div class="about-stats">
+
+<div class="stat-box">
+<div class="stat-number" data-target="18700">0</div>
+<div class="stat-label">kg CO₂ Saved</div>
+</div>
+
+<div class="stat-box">
+<div class="stat-number" data-target="24500">0</div>
+<div class="stat-label">kg Waste Reduced</div>
+</div>
+
+<div class="stat-box">
+<div class="stat-number" data-target="1245">0</div>
+<div class="stat-label">Active Users</div>
+</div>
+
+<div class="stat-box">
+<div class="stat-number" data-target="9820">0</div>
+<div class="stat-label">Eco Actions</div>
+</div>
+
+</div>
+
+
+<div class="about-features">
+
+<div class="feature-box">
+<div class="feature-title">Smart Waste Tracking</div>
+<div class="feature-desc">Automatically tracks waste patterns in real-time.</div>
+</div>
+
+<div class="feature-box">
+<div class="feature-title">AI Eco Insights</div>
+<div class="feature-desc">Gives smart suggestions for better sustainability habits.</div>
+</div>
+
+<div class="feature-box">
+<div class="feature-title">Community Impact</div>
+<div class="feature-desc">Connects users to a global eco-friendly movement.</div>
+</div>
+
+</div>
+
+</section>
+
+<div class="modal" id="modal" onclick="closeModal(event)">
+<div class="auth-container">
+
+<div class="left-panel">
+<h1>WasteLess</h1>
+<p style="margin-top:15px;font-size:14px;opacity:0.9;">
+Welcome to WasteLess. Make small actions, create big environmental change.
+</p>
+</div>
+
+<div class="right-panel">
+
+<div class="form-box active" id="loginForm">
+<h2>Login</h2>
+<input type="email" id="loginEmail" placeholder="Email">
+<input type="password" id="loginPassword" placeholder="Password">
+<div class="forgot-password" onclick="showForgotPassword()">Forgot Password?</div>
+<button class="auth-btn" id="loginBtn" onclick="handleLogin()">Login</button>
+<div id="loginError" style="color: #e53935; font-size: 12px; margin-top: 8px; display: none;"></div>
+<div class="switch" onclick="showRegister()">No account? Register</div>
+</div>
+
+<div class="form-box" id="registerForm">
+<h2>Register</h2>
+<input type="text" id="registerName" placeholder="Full Name">
+<input type="email" id="registerEmail" placeholder="Email">
+<div class="password-field">
+<input type="password" id="registerPassword" placeholder="Password">
+<span class="toggle-password" onclick="togglePassword('registerPassword', this)">👁️</span>
+</div>
+<div class="password-requirements">
+Password must have:
+<ul>
+<li id="req-length">At least 8 characters</li>
+<li id="req-upper">One uppercase letter</li>
+<li id="req-lower">One lowercase letter</li>
+<li id="req-number">One number</li>
+</ul>
+</div>
+<div class="password-field">
+<input type="password" id="registerConfirmPassword" placeholder="Confirm Password">
+<span class="toggle-password" onclick="togglePassword('registerConfirmPassword', this)">👁️</span>
+</div>
+<button class="auth-btn" id="registerBtn" onclick="handleRegister()">Register</button>
+<div id="registerError" style="color: #e53935; font-size: 12px; margin-top: 8px; display: none;"></div>
+<div class="switch" onclick="showLogin()">Already have an account? Login</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgotPasswordModal" onclick="closeForgotPassword(event)">
+<div class="forgot-modal-content" onclick="event.stopPropagation()">
+<h3>Reset Password</h3>
+<p style="font-size:13px;margin-bottom:15px;opacity:0.9;">Enter your email to receive a password reset link.</p>
+<input type="email" id="forgotPasswordEmail" placeholder="Email">
+<div id="forgotPasswordError" style="color: #e53935; font-size: 12px; margin-top: 8px; display: none;"></div>
+<button class="auth-btn" id="forgotPasswordBtn" onclick="handleForgotPassword()">Send Reset Link</button>
+<button style="background:none;border:none;color:#a5d6a7;cursor:pointer;margin-top:10px;" onclick="closeForgotPassword()">Back to Login</button>
+</div>
+</div>
+
+<script>
+
+function openModal(){
+document.getElementById("modal").classList.add("active");
+}
+
+function closeModal(e){
+if(e.target.id === "modal"){
+document.getElementById("modal").classList.remove("active");
+}
+}
+
+function showRegister(){
+document.getElementById("loginForm").classList.remove("active");
+document.getElementById("registerForm").classList.add("active");
+document.getElementById("loginError").style.display = "none";
+}
+
+function showLogin(){
+document.getElementById("registerForm").classList.remove("active");
+document.getElementById("loginForm").classList.add("active");
+document.getElementById("registerError").style.display = "none";
+}
+
+async function handleLogin() {
+  const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+  const password = document.getElementById("loginPassword").value;
+  const errorDiv = document.getElementById("loginError");
+  const btn = document.getElementById("loginBtn");
+  
+  if (!email || !password) {
+    errorDiv.textContent = "Please fill in all required fields.";
+    errorDiv.style.display = "block";
+    return;
+  }
+  
+  // Show loading state
+  btn.classList.add("loading");
+  btn.textContent = "Logging in...";
+  
+  try {
+    const response = await api.login(email, password);
+    api.setToken(response.data.token);
+    api.setUserData(response.data.user);
+    
+    // Display welcome message
+    alert("Welcome " + response.data.user.username + "!");
+    
+    // Redirect to dashboard
+    window.location.href = "track.html";
+  } catch (error) {
+    errorDiv.textContent = error.message;
+    errorDiv.style.display = "block";
+  } finally {
+    btn.classList.remove("loading");
+    btn.textContent = "Login";
+  }
+}
+
+async function handleRegister() {
+  const username = document.getElementById("registerName").value.trim();
+  const email = document.getElementById("registerEmail").value.trim().toLowerCase();
+  const password = document.getElementById("registerPassword").value;
+  const confirmPassword = document.getElementById("registerConfirmPassword").value;
+  const errorDiv = document.getElementById("registerError");
+  const btn = document.getElementById("registerBtn");
+  
+  if (!username || !email || !password || !confirmPassword) {
+    errorDiv.textContent = "Please fill in all required fields.";
+    errorDiv.style.display = "block";
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    errorDiv.textContent = "Invalid email format.";
+    errorDiv.style.display = "block";
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    errorDiv.textContent = "Passwords do not match.";
+    errorDiv.style.display = "block";
+    return;
+  }
+  
+  if (password.length < 8) {
+    errorDiv.textContent = "Password must be at least 8 characters.";
+    errorDiv.style.display = "block";
+    return;
+  }
+  
+  // Validate password requirements
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  
+  if (!hasUpper || !hasLower || !hasNumber) {
+    errorDiv.textContent = "Password must have at least one uppercase letter, one lowercase letter, and one number.";
+    errorDiv.style.display = "block";
+    return;
+  }
+  
+  // Show loading state
+  btn.classList.add("loading");
+  btn.textContent = "Registering...";
+  
+  try {
+    const response = await api.register(username, email, password);
+    
+    // Display success message and redirect to login
+    alert("Registration successful. You can now log in.");
+    document.getElementById("registerName").value = "";
+    document.getElementById("registerEmail").value = "";
+    document.getElementById("registerPassword").value = "";
+    document.getElementById("registerConfirmPassword").value = "";
+    showLogin();
+  } catch (error) {
+    errorDiv.textContent = error.message;
+    errorDiv.style.display = "block";
+  } finally {
+    btn.classList.remove("loading");
+    btn.textContent = "Register";
+  }
+}
+
+// Password toggle visibility
+function togglePassword(inputId, toggleBtn) {
+  const input = document.getElementById(inputId);
+  if (input.type === "password") {
+    input.type = "text";
+    toggleBtn.textContent = "🔒";
+  } else {
+    input.type = "password";
+    toggleBtn.textContent = "👁️";
+  }
+}
+
+// Real-time password requirements validation
+function validatePasswordRequirements(password) {
+  const reqs = {
+    length: password.length >= 8,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    number: /[0-9]/.test(password)
+  };
+  
+  document.getElementById("req-length").classList.toggle("valid", reqs.length);
+  document.getElementById("req-upper").classList.toggle("valid", reqs.upper);
+  document.getElementById("req-lower").classList.toggle("valid", reqs.lower);
+  document.getElementById("req-number").classList.toggle("valid", reqs.number);
+  
+  return reqs.length && reqs.upper && reqs.lower && reqs.number;
+}
+
+// Add password input listeners for real-time validation
+document.addEventListener("DOMContentLoaded", function() {
+  const registerPassword = document.getElementById("registerPassword");
+  if (registerPassword) {
+    registerPassword.addEventListener("input", function() {
+      validatePasswordRequirements(this.value);
+    });
+  }
+});
+
+// Forgot Password functionality
+function showForgotPassword() {
+  const modal = document.getElementById("forgotPasswordModal");
+  if (modal) {
+    modal.classList.add("active");
+  }
+}
+
+function closeForgotPassword() {
+  const modal = document.getElementById("forgotPasswordModal");
+  if (modal) {
+    modal.classList.remove("active");
+  }
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById("forgotPasswordEmail").value.trim().toLowerCase();
+  const errorDiv = document.getElementById("forgotPasswordError");
+  const btn = document.getElementById("forgotPasswordBtn");
+  
+  if (!email) {
+    errorDiv.textContent = "Please enter your email address.";
+    errorDiv.style.display = "block";
+    return;
+  }
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    errorDiv.textContent = "Invalid email format.";
+    errorDiv.style.display = "block";
+    return;
+  }
+  
+  btn.classList.add("loading");
+  btn.textContent = "Sending...";
+  
+  try {
+    // Call the forgot password API
+    const response = await fetch("api/index.php/auth/forgot-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email: email })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert("Password reset link has been sent to your email.");
+      closeForgotPassword();
+    } else {
+      errorDiv.textContent = data.message || "Failed to send reset link.";
+      errorDiv.style.display = "block";
+    }
+  } catch (error) {
+    errorDiv.textContent = "An error occurred. Please try again later.";
+    errorDiv.style.display = "block";
+  } finally {
+    btn.classList.remove("loading");
+    btn.textContent = "Send Reset Link";
+  }
+}
+
+// Check if already logged in
+if (api.isAuthenticated()) {
+  window.location.href = "track.html";
+}
+
+const counters = document.querySelectorAll('.stat-number');
+
+counters.forEach(counter => {
+const update = () => {
+const target = +counter.getAttribute('data-target');
+const current = +counter.innerText;
+const increment = target / 80;
+
+if(current < target){
+counter.innerText = Math.ceil(current + increment);
+setTimeout(update, 30);
+} else {
+counter.innerText = target.toLocaleString();
+}
+};
+update();
+});
+
+</script>
+
+</body>
+</html>

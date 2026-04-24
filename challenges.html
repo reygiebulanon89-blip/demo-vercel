@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WasteLess Challenges</title>
+<script src="api.service.js"></script>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: 'Segoe UI', sans-serif;
+}
+
+:root {
+--green-900: #1f5f27;
+--green-800: #2e7d32;
+--green-700: #43a047;
+--green-100: #e9f6eb;
+--green-50: #f6fbf7;
+--text-900: #16301a;
+--text-700: #4f5f52;
+--line: #d8e6d9;
+--card-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+}
+
+body {
+min-height: 100vh;
+background: linear-gradient(135deg, #dff7e2, #b8e6c1, #8fd19e);
+color: var(--text-900);
+}
+
+.dashboard-shell {
+min-height: 100vh;
+display: flex;
+}
+
+.sidebar {
+position: fixed;
+inset: 0 auto 0 0;
+width: 260px;
+padding: 28px 18px;
+background: linear-gradient(180deg, var(--green-900), var(--green-800));
+color: #fff;
+display: flex;
+flex-direction: column;
+gap: 28px;
+box-shadow: 15px 0 40px rgba(0, 0, 0, 0.08);
+}
+
+.brand {
+padding: 10px 12px 4px;
+}
+
+.brand h1 {
+font-size: 30px;
+line-height: 1;
+margin-bottom: 8px;
+}
+
+.brand p {
+font-size: 13px;
+line-height: 1.5;
+color: rgba(255, 255, 255, 0.8);
+}
+
+.nav {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.nav-item {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 14px 16px;
+border-radius: 14px;
+color: rgba(255, 255, 255, 0.88);
+text-decoration: none;
+font-size: 14px;
+font-weight: 600;
+transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.nav-item:hover {
+background: rgba(255, 255, 255, 0.08);
+transform: translateX(2px);
+}
+
+.nav-item.active {
+background: rgba(255, 255, 255, 0.16);
+box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.nav-icon {
+width: 20px;
+height: 20px;
+flex: 0 0 20px;
+stroke: currentColor;
+stroke-width: 1.9;
+fill: none;
+stroke-linecap: round;
+stroke-linejoin: round;
+}
+
+.sidebar-footer {
+margin-top: auto;
+padding: 8px;
+}
+
+.logout-btn {
+width: 100%;
+border: 1px solid rgba(255, 255, 255, 0.35);
+background: rgba(255, 255, 255, 0.1);
+color: #fff;
+padding: 11px 14px;
+border-radius: 12px;
+font-size: 13px;
+font-weight: 700;
+cursor: pointer;
+transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.logout-btn:hover {
+background: rgba(255, 255, 255, 0.2);
+transform: translateY(-1px);
+}
+
+.main {
+margin-left: 260px;
+width: calc(100% - 260px);
+padding: 28px;
+}
+
+.content {
+min-height: calc(100vh - 56px);
+background: rgba(255, 255, 255, 0.55);
+backdrop-filter: blur(8px);
+border: 1px solid rgba(255, 255, 255, 0.35);
+border-radius: 24px;
+box-shadow: var(--card-shadow);
+padding: 28px;
+}
+
+.header {
+margin-bottom: 14px;
+}
+
+.header h2 {
+font-size: 30px;
+margin-bottom: 6px;
+}
+
+.header p {
+font-size: 14px;
+color: var(--text-700);
+}
+
+.sync-status {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+margin-top: 10px;
+padding: 6px 10px;
+border-radius: 999px;
+font-size: 12px;
+font-weight: 700;
+border: 1px solid var(--line);
+background: #fff;
+color: var(--text-700);
+}
+
+.sync-status.syncing {
+background: #f6fbf7;
+border-color: #d8e6d9;
+color: var(--green-900);
+}
+
+.sync-status.synced {
+background: #eef8f0;
+border-color: #cfe6d1;
+color: #1f5f27;
+}
+
+.sync-status.error {
+background: #fff3f3;
+border-color: #f3c6c6;
+color: #b3261e;
+}
+
+.card {
+background: #fff;
+border: 1px solid var(--line);
+border-radius: 18px;
+padding: 18px;
+box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 12px;
+}
+
+.card-title h3 {
+font-size: 18px;
+}
+
+.card-title span {
+font-size: 12px;
+color: var(--text-700);
+}
+
+.active-wrap {
+margin-bottom: 14px;
+}
+
+.active-name {
+font-size: 20px;
+margin-bottom: 6px;
+}
+
+.active-desc {
+font-size: 13px;
+color: var(--text-700);
+margin-bottom: 12px;
+}
+
+.progress-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 13px;
+color: var(--text-700);
+margin-bottom: 8px;
+}
+
+.progress-track {
+width: 100%;
+height: 10px;
+border-radius: 999px;
+background: #e8f1e9;
+overflow: hidden;
+}
+
+.progress-fill {
+width: 66.67%;
+height: 100%;
+background: linear-gradient(90deg, #2e7d32, #43a047);
+}
+
+.list-wrap {
+max-height: 290px;
+overflow-y: auto;
+padding: 6px;
+padding-right: 8px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+border: 1px solid #e2ede3;
+border-radius: 14px;
+background: #f8fcf9;
+}
+
+.challenge-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+padding: 12px;
+border-radius: 12px;
+border: 1px solid #dbe8dc;
+border-left: 4px solid #7bbf7f;
+background: #fff;
+font-size: 14px;
+}
+
+.challenge-name {
+font-weight: 600;
+color: #2f5035;
+}
+
+.btn {
+padding: 7px 12px;
+border-radius: 999px;
+border: 1px solid #d8e6d9;
+background: #fff;
+font-size: 12px;
+font-weight: 600;
+color: #2e7d32;
+cursor: pointer;
+}
+
+.btn:hover {
+background: var(--green-50);
+}
+
+.btn.continue {
+background: linear-gradient(135deg, #2e7d32, #43a047);
+color: #fff;
+border: none;
+}
+
+.btn.completed {
+background: #eef5ef;
+color: #5b7060;
+border-color: #d4e2d6;
+cursor: default;
+}
+
+.list-wrap::-webkit-scrollbar {
+width: 8px;
+}
+
+.list-wrap::-webkit-scrollbar-track {
+background: #edf5ee;
+border-radius: 999px;
+}
+
+.list-wrap::-webkit-scrollbar-thumb {
+background: #bfd8c2;
+border-radius: 999px;
+}
+
+.done-note {
+margin-top: 14px;
+font-size: 13px;
+color: #2e7d32;
+padding: 10px 12px;
+border-radius: 10px;
+border: 1px solid #d1e8d4;
+background: #f3fbf4;
+width: fit-content;
+}
+
+.badges-section {
+margin-top: 18px;
+}
+
+.badges-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+gap: 14px;
+}
+
+.badge-block {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.badge {
+position: relative;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 14px;
+background: #fff;
+border: 1.5px solid var(--line);
+border-radius: 16px;
+text-align: center;
+cursor: pointer;
+transition: all 0.2s ease;
+aspect-ratio: 1;
+overflow: hidden;
+}
+
+.badge:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.badge.earned {
+background: linear-gradient(135deg, #f0fdf4, #e9f6eb);
+border-color: #43a047;
+}
+
+.badge.earned .badge-icon {
+color: #2e7d32;
+}
+
+.badge.locked {
+opacity: 0.5;
+}
+
+.badge.locked .badge-icon {
+color: #bbb;
+}
+
+.badge-icon {
+font-size: 32px;
+margin-bottom: 6px;
+transition: color 0.2s ease;
+}
+
+.badge-name {
+font-size: 11px;
+font-weight: 700;
+color: var(--text-900);
+line-height: 1.3;
+}
+
+.badge.locked .badge-name {
+color: #999;
+}
+
+.badge-tooltip {
+display: none;
+position: absolute;
+bottom: 100%;
+left: 50%;
+transform: translateX(-50%);
+background: var(--text-900);
+color: #fff;
+padding: 6px 10px;
+border-radius: 8px;
+font-size: 12px;
+white-space: nowrap;
+margin-bottom: 8px;
+pointer-events: none;
+z-index: 10;
+}
+
+.badge-tooltip::after {
+content: '';
+position: absolute;
+top: 100%;
+left: 50%;
+transform: translateX(-50%);
+border: 5px solid transparent;
+border-top-color: var(--text-900);
+}
+
+.badge:hover .badge-tooltip {
+display: block;
+}
+
+.badge-share-inline {
+width: 100%;
+}
+
+.badge-share-btn {
+border: none;
+background: linear-gradient(135deg, #2e7d32, #43a047);
+color: #fff;
+padding: 6px 10px;
+border-radius: 8px;
+font-size: 11px;
+font-weight: 700;
+cursor: pointer;
+white-space: nowrap;
+transition: all 0.2s ease;
+}
+
+.badge-share-btn:hover {
+transform: scale(1.05);
+box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+}
+
+.badge-modal-overlay {
+display: none;
+position: fixed;
+inset: 0;
+background: rgba(0, 0, 0, 0.4);
+backdrop-filter: blur(4px);
+z-index: 999;
+animation: fadeIn 0.3s ease;
+}
+
+.badge-modal-overlay.show {
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.badge-modal {
+background: linear-gradient(135deg, #f0fdf4, #e9f6eb);
+border: 2px solid var(--green-700);
+border-radius: 24px;
+padding: 32px;
+max-width: 380px;
+text-align: center;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+animation: slideUp 0.4s ease;
+}
+
+.badge-modal-icon {
+font-size: 72px;
+margin-bottom: 16px;
+animation: bounce 0.6s ease;
+}
+
+.badge-modal-title {
+font-size: 28px;
+font-weight: 700;
+color: var(--text-900);
+margin-bottom: 8px;
+}
+
+.badge-modal-subtitle {
+font-size: 16px;
+color: var(--green-700);
+font-weight: 600;
+margin-bottom: 12px;
+}
+
+.badge-modal-text {
+font-size: 14px;
+color: var(--text-700);
+margin-bottom: 24px;
+line-height: 1.6;
+}
+
+.badge-modal-btn {
+background: linear-gradient(135deg, #2e7d32, #43a047);
+color: #fff;
+border: none;
+padding: 12px 28px;
+border-radius: 14px;
+font-size: 14px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+
+.badge-modal-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+
+.badge-modal-actions {
+display: flex;
+gap: 10px;
+justify-content: center;
+flex-wrap: wrap;
+}
+
+.badge-modal-btn.secondary {
+background: #eef5ef;
+color: var(--green-800);
+border: 1px solid #cfe2d2;
+}
+
+@keyframes fadeIn {
+from {
+opacity: 0;
+}
+to {
+opacity: 1;
+}
+}
+
+@keyframes slideUp {
+from {
+transform: translateY(20px);
+opacity: 0;
+}
+to {
+transform: translateY(0);
+opacity: 1;
+}
+}
+
+@keyframes bounce {
+0%, 100% {
+transform: scale(1);
+}
+50% {
+transform: scale(1.1);
+}
+}
+
+@media (max-width: 820px) {
+.sidebar {
+position: static;
+width: 100%;
+border-radius: 0 0 22px 22px;
+}
+
+.main {
+margin-left: 0;
+width: 100%;
+padding: 16px;
+}
+
+.content {
+padding: 18px;
+border-radius: 20px;
+}
+}
+</style>
+</head>
+<body>
+<div class="dashboard-shell">
+<aside class="sidebar">
+<div class="brand">
+<h1 style="display:flex;align-items:center;gap:10px;">
+  <img src="logo.png" alt="WasteLess Logo" style="height:34px;width:auto;display:inline-block;vertical-align:middle;">
+  <span>WasteLess</span>
+</h1>
+<p>Manage waste tracking, insights, and sustainable actions from one place.</p>
+</div>
+
+<nav class="nav" aria-label="Primary">
+<a class="nav-item" href="Feed.html">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"></path><path d="M8 9h8"></path><path d="M8 13h5"></path></svg>
+<span>Feed</span>
+</a>
+<a class="nav-item" href="track.html">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-4.6 7-11a7 7 0 0 0-14 0c0 6.4 7 11 7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+<span>Track</span>
+</a>
+<a class="nav-item" href="analytics.html">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V5"></path><path d="M5 19h14"></path><path d="M8 15v-4"></path><path d="M12 15V8"></path><path d="M16 15v-6"></path></svg>
+<span>Analytics</span>
+</a>
+<a class="nav-item active" href="challenges.html" aria-current="page">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3a4 4 0 0 1-8 0z"></path><path d="M12 11v4"></path><path d="M9 20h6"></path><path d="M7 7H4a4 4 0 0 0 4 4"></path><path d="M17 7h3a4 4 0 0 1-4 4"></path></svg>
+<span>Challenges</span>
+</a>
+<a class="nav-item" href="profile.html">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="8" r="4"></circle></svg>
+<span>Profile</span>
+</a>
+</nav>
+
+<div class="sidebar-footer">
+<button class="logout-btn" type="button" onclick="handleLogout()">Logout</button>
+</div>
+</aside>
+
+<main class="main">
+<section class="content">
+<header class="header">
+<h2>Challenges</h2>
+<p>Simple goals to improve your habits</p>
+<div class="sync-status syncing" id="syncStatus">Syncing…</div>
+</header>
+
+<section class="card active-wrap" aria-label="Active challenge">
+<div class="card-title">
+<h3>Active Challenge</h3>
+<span>1 at a time</span>
+</div>
+<h4 class="active-name" id="activeChallengeName">No active challenge yet</h4>
+<p class="active-desc" id="activeChallengeDesc">Start one from the list below to begin building your eco streak.</p>
+<div class="progress-row">
+<span>Progress</span>
+<span id="activeChallengeProgressText">0 of 0 days completed</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="activeChallengeProgressFill" style="width: 0%;"></div>
+</div>
+<div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
+<button class="btn continue" type="button" id="logProgressBtn" disabled>Log Today</button>
+<button class="btn" type="button" id="abandonChallengeBtn" disabled>Abandon</button>
+</div>
+<p class="active-desc" id="activeChallengeMeta" style="margin-top: 10px; margin-bottom: 0;"></p>
+<p class="done-note" id="challengeDoneNote" style="display:none;"></p>
+</section>
+
+<section class="card" aria-label="Challenge list">
+<div class="card-title">
+<h3>Available Challenges</h3>
+<span>10 simple goals</span>
+</div>
+<div class="list-wrap" id="challengesList"></div>
+</section>
+
+<section class="card" aria-label="Badges">
+<div class="card-title">
+<h3>Badges</h3>
+<span>Earn achievements</span>
+</div>
+<div class="badges-grid">
+<!-- Eco Starter -->
+<div class="badge-block">
+<div class="badge earned">
+<span class="badge-icon">🌱</span>
+<span class="badge-name">First Entry</span>
+<div class="badge-tooltip">Eco Starter</div>
+</div>
+<button class="badge-share-btn badge-share-inline" type="button" data-badge="First Entry" data-icon="🌱">Share</button>
+</div>
+
+<div class="badge-block">
+<div class="badge earned">
+<span class="badge-icon">🏆</span>
+<span class="badge-name">First Challenge</span>
+<div class="badge-tooltip">Eco Starter</div>
+</div>
+<button class="badge-share-btn badge-share-inline" type="button" data-badge="First Challenge" data-icon="🏆">Share</button>
+</div>
+
+<!-- Plastic Reducer -->
+<div class="badge-block">
+<div class="badge earned">
+<span class="badge-icon">🚫</span>
+<span class="badge-name">No Plastic Day</span>
+<div class="badge-tooltip">Plastic Reducer</div>
+</div>
+<button class="badge-share-btn badge-share-inline" type="button" data-badge="No Plastic Day" data-icon="🚫">Share</button>
+</div>
+<div class="badge locked">
+<span class="badge-icon">♻️</span>
+<span class="badge-name">Plastic Free 3D</span>
+<div class="badge-tooltip">Plastic Reducer</div>
+</div>
+
+<!-- Water Saver -->
+<div class="badge locked">
+<span class="badge-icon">💧</span>
+<span class="badge-name">Water Conscious</span>
+<div class="badge-tooltip">Water Saver</div>
+</div>
+<div class="badge locked">
+<span class="badge-icon">💦</span>
+<span class="badge-name">Low Water</span>
+<div class="badge-tooltip">Water Saver</div>
+</div>
+
+<!-- Energy Saver -->
+<div class="badge locked">
+<span class="badge-icon">⚡</span>
+<span class="badge-name">Power Conscious</span>
+<div class="badge-tooltip">Energy Saver</div>
+</div>
+<div class="badge locked">
+<span class="badge-icon">💡</span>
+<span class="badge-name">Low Energy</span>
+<div class="badge-tooltip">Energy Saver</div>
+</div>
+
+<!-- Food Saver -->
+<div class="badge locked">
+<span class="badge-icon">🍽️</span>
+<span class="badge-name">No Food Waste</span>
+<div class="badge-tooltip">Food Saver</div>
+</div>
+<div class="badge locked">
+<span class="badge-icon">🥗</span>
+<span class="badge-name">Smart Consumption</span>
+<div class="badge-tooltip">Food Saver</div>
+</div>
+
+<!-- Streaks -->
+<div class="badge-block">
+<div class="badge earned">
+<span class="badge-icon">🔥</span>
+<span class="badge-name">3-Day Streak</span>
+<div class="badge-tooltip">Streaks</div>
+</div>
+<button class="badge-share-btn badge-share-inline" type="button" data-badge="3-Day Streak" data-icon="🔥">Share</button>
+</div>
+<div class="badge locked">
+<span class="badge-icon">🔥</span>
+<span class="badge-name">7-Day Streak</span>
+<div class="badge-tooltip">Streaks</div>
+</div>
+<div class="badge locked">
+<span class="badge-icon">🔥</span>
+<span class="badge-name">14-Day Streak</span>
+<div class="badge-tooltip">Streaks</div>
+</div>
+
+<!-- Improvement Maker -->
+<div class="badge locked">
+<span class="badge-icon">📈</span>
+<span class="badge-name">Consistent Tracker</span>
+<div class="badge-tooltip">Improvement Maker</div>
+</div>
+<div class="badge locked">
+<span class="badge-icon">📊</span>
+<span class="badge-name">Eco Improver</span>
+<div class="badge-tooltip">Improvement Maker</div>
+</div>
+
+<!-- Green Habit Builder -->
+<div class="badge locked">
+<span class="badge-icon">🌿</span>
+<span class="badge-name">Sustainability Ad.</span>
+<div class="badge-tooltip">Green Habit Builder</div>
+</div>
+<div class="badge locked">
+<span class="badge-icon">👑</span>
+<span class="badge-name">Eco Champion</span>
+<div class="badge-tooltip">Green Habit Builder</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+
+<!-- Badge Achievement Modal -->
+<div class="badge-modal-overlay" id="badgeModal">
+<div class="badge-modal">
+<div class="badge-modal-icon" id="modalBadgeIcon"></div>
+<h3 class="badge-modal-title">Congratulations!</h3>
+<div class="badge-modal-subtitle" id="modalBadgeName"></div>
+<p class="badge-modal-text">You've unlocked a new achievement. Keep up the great work!</p>
+<div class="badge-modal-actions">
+<button class="badge-modal-btn secondary" type="button" onclick="closeBadgeModal()">Not now</button>
+<button class="badge-modal-btn" type="button" id="shareBadgeConfirmBtn">Share to Feed</button>
+</div>
+</div>
+</div>
+
+<script>
+const CHALLENGE_STORAGE_KEY = 'wastelessChallengeState';
+const BADGE_STORAGE_KEY = 'wastelessEarnedBadgeNames';
+
+const challenges = [
+  { id: 'plastic3', name: 'No Plastic for 3 Days', description: 'Avoid single-use plastic items for three consecutive days.', targetDays: 3 },
+  { id: 'water3', name: 'Reduce Water Usage', description: 'Use less water for three days by shortening showers and turning taps off while soaping.', targetDays: 3 },
+  { id: 'food1', name: 'No Food Waste Today', description: 'Finish meals and avoid throwing away edible food for one day.', targetDays: 1 },
+  { id: 'energy3', name: 'Limit Electricity Use', description: 'Reduce appliance and lighting use for three days.', targetDays: 3 },
+  { id: 'bags2', name: 'Use Reusable Bags', description: 'Use reusable shopping bags for two days.', targetDays: 2 },
+  { id: 'lights2', name: 'Turn Off Lights When Not in Use', description: 'Build the habit of switching off idle lights for two days.', targetDays: 2 },
+  { id: 'bottle2', name: 'Drink Using Reusable Bottle', description: 'Skip disposable cups and bottles for two days.', targetDays: 2 },
+  { id: 'singleuse2', name: 'Avoid Single-Use Items', description: 'Avoid disposable cutlery and packaging for two days.', targetDays: 2 },
+  { id: 'wash2', name: 'Save Water While Washing', description: 'Conserve water while washing dishes or hands for two days.', targetDays: 2 },
+  { id: 'unplug2', name: 'Unplug Devices When Not Needed', description: 'Unplug idle chargers and devices for two days.', targetDays: 2 }
+];
+
+let challengeState = loadChallengeState();
+let earnedBadgeNames = loadEarnedBadges();
+let challengeIdToBackendId = {};
+let backendIdToChallengeId = {};
+let challengeBusy = false;
+
+function setSyncStatus(state, text) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  el.classList.remove('syncing', 'synced', 'error');
+  el.classList.add(state);
+  el.textContent = text;
+}
+
+function loadChallengeState() {
+  const raw = localStorage.getItem(CHALLENGE_STORAGE_KEY);
+  if (!raw) {
+    return {
+      activeChallengeId: null,
+      progressByChallengeId: {},
+      completedChallengeIds: [],
+      lastProgressDateByChallengeId: {}
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      activeChallengeId: parsed.activeChallengeId || null,
+      progressByChallengeId: parsed.progressByChallengeId || {},
+      completedChallengeIds: Array.isArray(parsed.completedChallengeIds) ? parsed.completedChallengeIds : [],
+      lastProgressDateByChallengeId: parsed.lastProgressDateByChallengeId || {}
+    };
+  } catch (error) {
+    return {
+      activeChallengeId: null,
+      progressByChallengeId: {},
+      completedChallengeIds: [],
+      lastProgressDateByChallengeId: {}
+    };
+  }
+}
+
+function saveChallengeState() {
+  localStorage.setItem(CHALLENGE_STORAGE_KEY, JSON.stringify(challengeState));
+}
+
+function loadEarnedBadges() {
+  const raw = localStorage.getItem(BADGE_STORAGE_KEY);
+  if (!raw) return new Set();
+  try {
+    const parsed = JSON.parse(raw);
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch (error) {
+    return new Set();
+  }
+}
+
+function saveEarnedBadges() {
+  localStorage.setItem(BADGE_STORAGE_KEY, JSON.stringify(Array.from(earnedBadgeNames)));
+}
+
+function getChallengeById(id) {
+  return challenges.find((challenge) => challenge.id === id) || null;
+}
+
+async function startChallenge(challengeId) {
+  if (challengeBusy) return;
+  if (challengeState.activeChallengeId) return;
+  if (challengeState.completedChallengeIds.includes(challengeId)) return;
+  const backendId = challengeIdToBackendId[challengeId];
+  if (!backendId) {
+    showDoneMessage('Challenge setup is still loading. Please try again.');
+    return;
+  }
+
+  challengeBusy = true;
+  setSyncStatus('syncing', 'Syncing…');
+  try {
+    await api.joinChallenge(backendId);
+  } catch (error) {
+    setSyncStatus('error', 'Sync issue');
+    showDoneMessage(`Could not start challenge: ${error.message}`);
+    challengeBusy = false;
+    return;
+  }
+
+  challengeState.activeChallengeId = challengeId;
+  if (typeof challengeState.progressByChallengeId[challengeId] !== 'number') {
+    challengeState.progressByChallengeId[challengeId] = 0;
+  }
+
+  saveChallengeState();
+  renderChallenges();
+  challengeBusy = false;
+  setSyncStatus('synced', 'Synced');
+}
+
+function getLocalTodayISO() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+async function abandonActiveChallenge() {
+  if (challengeBusy) return;
+  const activeId = challengeState.activeChallengeId;
+  if (!activeId) return;
+  const activeChallenge = getChallengeById(activeId);
+  const backendId = challengeIdToBackendId[activeId];
+
+  if (backendId) {
+    challengeBusy = true;
+    setSyncStatus('syncing', 'Syncing…');
+    try {
+      await api.leaveChallenge(backendId);
+    } catch (error) {
+      setSyncStatus('error', 'Sync issue');
+      showDoneMessage(`Could not stop challenge: ${error.message}`);
+      challengeBusy = false;
+      return;
+    }
+    challengeBusy = false;
+  }
+
+  challengeState.activeChallengeId = null;
+  saveChallengeState();
+  renderChallenges();
+  showDoneMessage(`Stopped: ${activeChallenge ? activeChallenge.name : 'Challenge'}. You can start another anytime.`);
+  setSyncStatus('synced', 'Synced');
+}
+
+async function completeActiveDay() {
+  if (challengeBusy) return;
+  const activeId = challengeState.activeChallengeId;
+  const activeChallenge = getChallengeById(activeId);
+  if (!activeChallenge) return;
+
+  const today = getLocalTodayISO();
+  const lastLoggedDate = challengeState.lastProgressDateByChallengeId[activeId];
+  if (lastLoggedDate === today) {
+    showDoneMessage('Progress already logged for today. Come back tomorrow to continue.');
+    return;
+  }
+
+  const currentProgress = challengeState.progressByChallengeId[activeId] || 0;
+  const nextProgress = Math.min(currentProgress + 1, activeChallenge.targetDays);
+  const backendId = challengeIdToBackendId[activeId];
+  if (!backendId) {
+    showDoneMessage('Challenge is not linked to server yet. Please refresh and retry.');
+    return;
+  }
+
+  challengeBusy = true;
+  setSyncStatus('syncing', 'Syncing…');
+  try {
+    await api.updateChallengeProgress(backendId, nextProgress);
+  } catch (error) {
+    setSyncStatus('error', 'Sync issue');
+    showDoneMessage(`Could not save progress: ${error.message}`);
+    challengeBusy = false;
+    return;
+  }
+  challengeBusy = false;
+
+  challengeState.progressByChallengeId[activeId] = nextProgress;
+  challengeState.lastProgressDateByChallengeId[activeId] = today;
+
+  if (nextProgress >= activeChallenge.targetDays) {
+    if (!challengeState.completedChallengeIds.includes(activeId)) {
+      challengeState.completedChallengeIds.push(activeId);
+    }
+    challengeState.activeChallengeId = null;
+    showDoneMessage(`Completed: ${activeChallenge.name}. Nice work! Start a new one.`);
+  } else {
+    showDoneMessage(`Progress saved for ${activeChallenge.name}. Keep going.`);
+  }
+
+  syncChallengeBadges();
+  saveChallengeState();
+  renderChallenges();
+  setSyncStatus('synced', 'Synced');
+}
+
+function showDoneMessage(message) {
+  const note = document.getElementById('challengeDoneNote');
+  note.textContent = message;
+  note.style.display = 'block';
+}
+
+function clearDoneMessage() {
+  const note = document.getElementById('challengeDoneNote');
+  note.style.display = 'none';
+}
+
+function renderActiveChallenge() {
+  const activeName = document.getElementById('activeChallengeName');
+  const activeDesc = document.getElementById('activeChallengeDesc');
+  const progressText = document.getElementById('activeChallengeProgressText');
+  const progressFill = document.getElementById('activeChallengeProgressFill');
+  const logProgressBtn = document.getElementById('logProgressBtn');
+  const abandonBtn = document.getElementById('abandonChallengeBtn');
+  const activeMeta = document.getElementById('activeChallengeMeta');
+
+  const activeChallenge = getChallengeById(challengeState.activeChallengeId);
+
+  if (!activeChallenge) {
+    activeName.textContent = 'No active challenge yet';
+    activeDesc.textContent = 'Start one from the list below to begin building your eco streak.';
+    progressText.textContent = '0 of 0 days completed';
+    progressFill.style.width = '0%';
+    logProgressBtn.disabled = true;
+    abandonBtn.disabled = true;
+    logProgressBtn.classList.remove('continue');
+    activeMeta.textContent = 'Tip: You can only log progress once per day.';
+    return;
+  }
+
+  const progress = challengeState.progressByChallengeId[activeChallenge.id] || 0;
+  const percent = Math.min((progress / activeChallenge.targetDays) * 100, 100);
+  const lastLoggedDate = challengeState.lastProgressDateByChallengeId[activeChallenge.id] || '';
+  const today = getLocalTodayISO();
+  const alreadyLoggedToday = lastLoggedDate === today;
+
+  activeName.textContent = activeChallenge.name;
+  activeDesc.textContent = activeChallenge.description;
+  progressText.textContent = `${progress} of ${activeChallenge.targetDays} days completed`;
+  progressFill.style.width = `${percent}%`;
+  logProgressBtn.disabled = alreadyLoggedToday;
+  logProgressBtn.textContent = alreadyLoggedToday ? 'Logged Today' : 'Log Today';
+  abandonBtn.disabled = false;
+  logProgressBtn.classList.add('continue');
+  activeMeta.textContent = alreadyLoggedToday
+    ? 'Progress already logged today. Next log available tomorrow.'
+    : 'You can log one progress step today.';
+}
+
+function renderChallengeList() {
+  const list = document.getElementById('challengesList');
+  const hasActiveChallenge = Boolean(challengeState.activeChallengeId);
+
+  list.innerHTML = challenges.map((challenge) => {
+    const isCompleted = challengeState.completedChallengeIds.includes(challenge.id);
+    const isActive = challengeState.activeChallengeId === challenge.id;
+
+    if (isCompleted) {
+      return `<div class="challenge-item">
+        <span class="challenge-name">${challenge.name}</span>
+        <button class="btn completed" type="button" disabled>Completed</button>
+      </div>`;
+    }
+
+    if (isActive) {
+      return `<div class="challenge-item">
+        <span class="challenge-name">${challenge.name}</span>
+        <button class="btn continue" type="button" data-action="go-active">Continue</button>
+      </div>`;
+    }
+
+    if (hasActiveChallenge) {
+      return `<div class="challenge-item">
+        <span class="challenge-name">${challenge.name}</span>
+        <button class="btn" type="button" disabled>Locked (1 at a time)</button>
+      </div>`;
+    }
+
+    return `<div class="challenge-item">
+      <span class="challenge-name">${challenge.name}</span>
+      <button class="btn" type="button" data-action="start" data-id="${challenge.id}" ${challengeBusy ? 'disabled' : ''}>Start</button>
+    </div>`;
+  }).join('');
+}
+
+async function ensureChallengesSeeded() {
+  setSyncStatus('syncing', 'Syncing…');
+  let remote = [];
+  try {
+    const response = await api.getChallenges(200, 0);
+    remote = Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    setSyncStatus('error', 'Sync issue');
+    showDoneMessage(`Could not load challenges from server: ${error.message}`);
+    return false;
+  }
+
+  const byTitle = new Map(remote.map((c) => [String(c.title || '').trim().toLowerCase(), c]));
+  for (const challenge of challenges) {
+    const key = challenge.name.trim().toLowerCase();
+    if (!byTitle.has(key)) {
+      try {
+        const createResp = await api.createChallenge(
+          challenge.name,
+          challenge.description,
+          challenge.targetDays,
+          'units'
+        );
+        const created = createResp?.data || null;
+        if (created && created.id) {
+          byTitle.set(key, created);
+        }
+      } catch (error) {
+        // Ignore creation failures for already-existing/validation races.
+      }
+    }
+  }
+
+  // Refresh once to ensure stable IDs and mapping.
+  try {
+    const response = await api.getChallenges(200, 0);
+    remote = Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    setSyncStatus('error', 'Sync issue');
+    return false;
+  }
+
+  challengeIdToBackendId = {};
+  backendIdToChallengeId = {};
+  const remoteByTitle = new Map(remote.map((c) => [String(c.title || '').trim().toLowerCase(), c]));
+  challenges.forEach((challenge) => {
+    const found = remoteByTitle.get(challenge.name.trim().toLowerCase());
+    if (found && found.id) {
+      challengeIdToBackendId[challenge.id] = Number(found.id);
+      backendIdToChallengeId[String(found.id)] = challenge.id;
+    }
+  });
+  setSyncStatus('synced', 'Synced');
+  return true;
+}
+
+async function syncStateFromServer() {
+  setSyncStatus('syncing', 'Syncing…');
+  try {
+    const response = await api.getUserChallenges();
+    const userChallenges = Array.isArray(response.data) ? response.data : [];
+
+    const nextProgress = {};
+    const nextCompleted = [];
+    let nextActive = null;
+
+    userChallenges.forEach((item) => {
+      const localId = backendIdToChallengeId[String(item.id)];
+      if (!localId) return;
+      const localChallenge = getChallengeById(localId);
+      if (!localChallenge) return;
+
+      const progress = Number(item.progress || 0);
+      nextProgress[localId] = progress;
+      if (progress >= localChallenge.targetDays) {
+        if (!nextCompleted.includes(localId)) nextCompleted.push(localId);
+      } else if (!nextActive) {
+        nextActive = localId;
+      }
+    });
+
+    challengeState.progressByChallengeId = { ...challengeState.progressByChallengeId, ...nextProgress };
+    challengeState.completedChallengeIds = nextCompleted;
+    challengeState.activeChallengeId = nextActive;
+
+    saveChallengeState();
+    setSyncStatus('synced', 'Synced');
+  } catch (error) {
+    setSyncStatus('error', 'Sync issue');
+    showDoneMessage(`Could not sync your challenge progress: ${error.message}`);
+  }
+}
+
+function ensureShareButton(badgeElement, badgeName, badgeIcon) {
+  const parentBlock = badgeElement.closest('.badge-block');
+  if (!parentBlock) return;
+  if (parentBlock.querySelector('.badge-share-btn[data-badge]')) return;
+
+  const button = document.createElement('button');
+  button.className = 'badge-share-btn badge-share-inline';
+  button.type = 'button';
+  button.dataset.badge = badgeName;
+  button.dataset.icon = badgeIcon;
+  button.textContent = 'Share';
+  parentBlock.appendChild(button);
+}
+
+function setBadgeLockedByName(badgeName) {
+  const badgeNameElements = Array.from(document.querySelectorAll('.badge-name'));
+  const badgeNameElement = badgeNameElements.find((element) => element.textContent.trim() === badgeName);
+  if (!badgeNameElement) return;
+  const badge = badgeNameElement.closest('.badge');
+  if (!badge) return;
+  badge.classList.remove('earned');
+  badge.classList.add('locked');
+}
+
+function unlockBadgeByName(badgeName) {
+  const badgeNames = Array.from(document.querySelectorAll('.badge-name'));
+  const badgeNameElement = badgeNames.find((element) => element.textContent.trim() === badgeName);
+  if (!badgeNameElement) return false;
+
+  const badge = badgeNameElement.closest('.badge');
+  if (!badge) return false;
+
+  const becameEarned = badge.classList.contains('locked');
+  badge.classList.remove('locked');
+  badge.classList.add('earned');
+
+  const iconElement = badge.querySelector('.badge-icon');
+  ensureShareButton(badge, badgeName, iconElement ? iconElement.textContent.trim() : '🏅');
+  return becameEarned;
+}
+
+function getBadgeMetrics() {
+  const completed = challengeState.completedChallengeIds;
+  const completedCount = completed.length;
+  const totalProgressDays = Object.values(challengeState.progressByChallengeId || {}).reduce((sum, value) => {
+    const n = Number(value || 0);
+    return sum + (Number.isFinite(n) ? n : 0);
+  }, 0);
+
+  const completedSet = new Set(completed);
+
+  return {
+    completed,
+    completedSet,
+    completedCount,
+    totalProgressDays
+  };
+}
+
+const BADGE_RULES = [
+  { name: 'First Entry', icon: '🌱', hint: 'Log progress for any challenge once.', when: (m) => m.totalProgressDays >= 1 },
+  { name: 'First Challenge', icon: '🏆', hint: 'Complete 1 challenge.', when: (m) => m.completedCount >= 1 },
+  { name: 'No Plastic Day', icon: '🚫', hint: 'Log at least 1 day in "No Plastic for 3 Days".', when: (m) => (challengeState.progressByChallengeId.plastic3 || 0) >= 1 },
+  { name: 'Plastic Free 3D', icon: '♻️', hint: 'Complete "No Plastic for 3 Days".', when: (m) => m.completedSet.has('plastic3') },
+  { name: 'Water Conscious', icon: '💧', hint: 'Complete a water-focused challenge.', when: (m) => m.completedSet.has('water3') || m.completedSet.has('wash2') },
+  { name: 'Low Water', icon: '💦', hint: 'Complete both water challenges.', when: (m) => m.completedSet.has('water3') && m.completedSet.has('wash2') },
+  { name: 'Power Conscious', icon: '⚡', hint: 'Complete any energy-focused challenge.', when: (m) => m.completedSet.has('energy3') || m.completedSet.has('lights2') || m.completedSet.has('unplug2') },
+  { name: 'Low Energy', icon: '💡', hint: 'Complete all energy challenges.', when: (m) => m.completedSet.has('energy3') && m.completedSet.has('lights2') && m.completedSet.has('unplug2') },
+  { name: 'No Food Waste', icon: '🍽️', hint: 'Complete "No Food Waste Today".', when: (m) => m.completedSet.has('food1') },
+  { name: 'Smart Consumption', icon: '🥗', hint: 'Complete 2 challenges.', when: (m) => m.completedCount >= 2 },
+  { name: '3-Day Streak', icon: '🔥', hint: 'Log 3 total progress days.', when: (m) => m.totalProgressDays >= 3 },
+  { name: '7-Day Streak', icon: '🔥', hint: 'Log 7 total progress days.', when: (m) => m.totalProgressDays >= 7 },
+  { name: '14-Day Streak', icon: '🔥', hint: 'Log 14 total progress days.', when: (m) => m.totalProgressDays >= 14 },
+  { name: 'Consistent Tracker', icon: '📈', hint: 'Complete 5 challenges.', when: (m) => m.completedCount >= 5 },
+  { name: 'Eco Improver', icon: '📊', hint: 'Complete 7 challenges.', when: (m) => m.completedCount >= 7 },
+  { name: 'Sustainability Ad.', icon: '🌿', hint: 'Complete 9 challenges.', when: (m) => m.completedCount >= 9 },
+  { name: 'Eco Champion', icon: '👑', hint: 'Complete all available challenges.', when: (m) => m.completedCount >= challenges.length }
+];
+
+function applyBadgeHints() {
+  const hintByName = new Map(BADGE_RULES.map((r) => [r.name, r.hint || '']));
+  Array.from(document.querySelectorAll('.badge')).forEach((badgeEl) => {
+    const nameEl = badgeEl.querySelector('.badge-name');
+    const tooltipEl = badgeEl.querySelector('.badge-tooltip');
+    if (!nameEl || !tooltipEl) return;
+    const name = nameEl.textContent.trim();
+    const hint = hintByName.get(name);
+    if (hint) {
+      tooltipEl.textContent = hint;
+    }
+  });
+}
+
+function applyBadgeVisualState() {
+  // Start from locked for all badge cards to avoid static/hardcoded earned state.
+  Array.from(document.querySelectorAll('.badge')).forEach((badge) => {
+    badge.classList.remove('earned');
+    badge.classList.add('locked');
+  });
+
+  // Remove all share buttons; they are re-added only for earned badges.
+  Array.from(document.querySelectorAll('.badge-share-btn.badge-share-inline')).forEach((btn) => {
+    btn.remove();
+  });
+
+  // Re-apply earned visuals from persisted set.
+  earnedBadgeNames.forEach((badgeName) => {
+    unlockBadgeByName(badgeName);
+  });
+}
+
+function syncChallengeBadges() {
+  const newlyEarned = [];
+  const metrics = getBadgeMetrics();
+
+  BADGE_RULES.forEach((rule) => {
+    const shouldEarn = Boolean(rule.when(metrics));
+    if (shouldEarn && !earnedBadgeNames.has(rule.name)) {
+      earnedBadgeNames.add(rule.name);
+      newlyEarned.push({ name: rule.name, icon: rule.icon });
+    }
+  });
+
+  applyBadgeVisualState();
+
+  saveEarnedBadges();
+
+  if (newlyEarned.length > 0) {
+    const latestBadge = newlyEarned[newlyEarned.length - 1];
+    localStorage.setItem('badgeToShare', JSON.stringify({
+      name: latestBadge.name,
+      icon: latestBadge.icon,
+      timestamp: Date.now()
+    }));
+    showBadgeModal(latestBadge.icon, latestBadge.name);
+  }
+}
+
+function applySavedEarnedBadges() {
+  applyBadgeVisualState();
+}
+
+function renderChallenges() {
+  renderActiveChallenge();
+  renderChallengeList();
+}
+
+function showBadgeModal(badgeIcon, badgeName) {
+  const modal = document.getElementById('badgeModal');
+  document.getElementById('modalBadgeIcon').textContent = badgeIcon;
+  document.getElementById('modalBadgeName').textContent = badgeName;
+  modal.classList.add('show');
+}
+
+function closeBadgeModal() {
+  const modal = document.getElementById('badgeModal');
+  modal.classList.remove('show');
+}
+
+function shareBadgeToFeed() {
+  const badgeData = localStorage.getItem('badgeToShare');
+  if (!badgeData) return;
+
+  window.location.href = 'Feed.html?shareBadge=true';
+}
+
+// Close modal when clicking overlay
+document.getElementById('badgeModal').addEventListener('click', (e) => {
+  if (e.target.id === 'badgeModal') {
+    closeBadgeModal();
+  }
+});
+
+document.getElementById('shareBadgeConfirmBtn').addEventListener('click', () => {
+  shareBadgeToFeed();
+});
+
+document.addEventListener('click', (event) => {
+  const shareButton = event.target.closest('.badge-share-btn[data-badge]');
+  if (!shareButton) return;
+
+  const badgeName = shareButton.dataset.badge;
+  const badgeIcon = shareButton.dataset.icon;
+
+  const badgeData = {
+    name: badgeName,
+    icon: badgeIcon,
+    timestamp: Date.now()
+  };
+
+  localStorage.setItem('badgeToShare', JSON.stringify(badgeData));
+  showBadgeModal(badgeIcon, badgeName);
+});
+
+document.getElementById('challengesList').addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+
+  const action = button.dataset.action;
+  if (action === 'start') {
+    const challengeId = button.dataset.id;
+    clearDoneMessage();
+    await startChallenge(challengeId);
+    return;
+  }
+
+  if (action === 'go-active') {
+    const activeCard = document.querySelector('.active-wrap');
+    if (activeCard) {
+      activeCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+});
+
+document.getElementById('logProgressBtn').addEventListener('click', async () => {
+  await completeActiveDay();
+});
+
+document.getElementById('abandonChallengeBtn').addEventListener('click', async () => {
+  if (!challengeState.activeChallengeId) return;
+  if (!confirm('Stop your current active challenge?')) return;
+  await abandonActiveChallenge();
+});
+
+function handleLogout() {
+  api.logout();
+  window.location.href = 'index.html';
+}
+
+if (!api.isAuthenticated()) {
+  window.location.href = 'index.html';
+}
+
+async function initChallengesPage() {
+  setSyncStatus('syncing', 'Syncing…');
+  applyBadgeHints();
+  applySavedEarnedBadges();
+  await ensureChallengesSeeded();
+  await syncStateFromServer();
+  syncChallengeBadges();
+  renderChallenges();
+  setSyncStatus('synced', 'Synced');
+}
+
+initChallengesPage();
+</script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+{
+  "info": {
+    "name": "WasteLess API",
+    "description": "API collection for WasteLess - Sustainability & Waste Tracking Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"john_doe\",\"email\":\"john@example.com\",\"password\":\"securepass123\",\"bio\":\"I love sustainability\"}"
+            },
+            "url": {
+              "raw": "http://localhost/wasteless/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"john@example.com\",\"password\":\"securepass123\"}"
+            },
+            "url": {
+              "raw": "http://localhost/wasteless/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost/wasteless/api/users?limit=50",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "users"],
+              "query": [{"key": "limit", "value": "50"}]
+            }
+          }
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE"}
+            ],
+            "url": {
+              "raw": "http://localhost/wasteless/api/users/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"new_username\",\"bio\":\"Updated bio\"}"
+            },
+            "url": {
+              "raw": "http://localhost/wasteless/api/users/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "users", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feed",
+      "item": [
+        {
+          "name": "Get Feed",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost/wasteless/api/feed?limit=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "feed"],
+              "query": [{"key": "limit", "value": "20"}]
+            }
+          }
+        },
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"content\":\"Just saved 5kg of waste today! 🌱\"}"
+            },
+            "url": {
+              "raw": "http://localhost/wasteless/api/posts",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "posts"]
+            }
+          }
+        },
+        {
+          "name": "Like Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE"}
+            ],
+            "url": {
+              "raw": "http://localhost/wasteless/api/posts/1/like",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "posts", "1", "like"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Challenges",
+      "item": [
+        {
+          "name": "Get All Challenges",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost/wasteless/api/challenges",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "challenges"]
+            }
+          }
+        },
+        {
+          "name": "Create Challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Zero Waste Week\",\"description\":\"Reduce waste to zero\",\"target\":0,\"target_unit\":\"kg\"}"
+            },
+            "url": {
+              "raw": "http://localhost/wasteless/api/challenges",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "challenges"]
+            }
+          }
+        },
+        {
+          "name": "Join Challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE"}
+            ],
+            "url": {
+              "raw": "http://localhost/wasteless/api/challenges/1/join",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "challenges", "1", "join"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tracking",
+      "item": [
+        {
+          "name": "Log Waste",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"waste_type\":\"plastic\",\"quantity\":5,\"unit\":\"kg\",\"co2_saved\":10}"
+            },
+            "url": {
+              "raw": "http://localhost/wasteless/api/tracking/log",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "tracking", "log"]
+            }
+          }
+        },
+        {
+          "name": "Get User Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE"}
+            ],
+            "url": {
+              "raw": "http://localhost/wasteless/api/tracking/stats",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "tracking", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Global Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost/wasteless/api/tracking/global-stats",
+              "protocol": "http",
+              "host": ["localhost"],
+              "path": ["wasteless", "api", "tracking", "global-stats"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
