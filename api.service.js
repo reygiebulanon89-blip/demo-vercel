@@ -3,8 +3,8 @@
  * Handles all API calls to the backend
  */
 
-const API_BASE_URL = 'http://localhost/wasteless/api';
-const NOTIFICATIONS_STREAM_URL = 'http://localhost/wasteless/api/notifications-stream.php';
+const API_BASE_URL = 'https://wasteless-app.infinityfreeapp.com/api';
+const NOTIFICATIONS_STREAM_URL = 'https://wasteless-app.infinityfreeapp.com/api/notifications-stream.php';
 
 class ApiService {
   constructor() {
