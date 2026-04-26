@@ -1,0 +1,4 @@
+
+
+
+<?php echo "HTACCESS WORKING";
