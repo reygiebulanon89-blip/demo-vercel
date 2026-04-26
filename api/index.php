@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Get request method and path
 $request_method = $_SERVER['REQUEST_METHOD'];
 $request_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$request_path = trim($request_path, '/');
+$request_path = str_replace('/wasteless/api/', '', $request_path);
 $request_path = trim($request_path, '/');
 
 // Parse URL segments

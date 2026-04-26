@@ -1,8 +1,17 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /api/
-
+    RewriteBase /wasteless/api/
+    
+    # Remove .php from URL
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ index.php [QSA,L]
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+    
+    # Allow direct access to files
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+    
+    # Allow direct access to directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 </IfModule>
