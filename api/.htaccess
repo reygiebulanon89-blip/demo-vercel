@@ -1,4 +1,12 @@
 <IfModule mod_rewrite.c>
+    <IfModule mod_rewrite.c>
     RewriteEngine On
-RewriteRule ^test$ test.php [L]
+
+    RewriteBase /api/
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
 </IfModule>
