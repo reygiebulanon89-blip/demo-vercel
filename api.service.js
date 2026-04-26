@@ -29,7 +29,7 @@ class ApiService {
    */
   async handleResponse(response) {
     const data = await response.json();
-    
+
     if (!response.ok) {
       // Handle 401 Unauthorized - redirect to login
       if (response.status === 401) {
@@ -38,7 +38,7 @@ class ApiService {
       }
       throw new Error(data.message || `Error: ${response.status}`);
     }
-    
+
     return data;
   }
 
@@ -291,7 +291,7 @@ class ApiService {
   async createPost(content, image = null) {
     const body = { content };
     if (image) body.image = image;
-    
+
     const response = await fetch(`${API_BASE_URL}/posts`, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -480,7 +480,7 @@ class ApiService {
     const body = { title, description, target, target_unit: targetUnit };
     if (startDate) body.start_date = startDate;
     if (endDate) body.end_date = endDate;
-    
+
     const response = await fetch(`${API_BASE_URL}/challenges`, {
       method: 'POST',
       headers: this.getHeaders(),
