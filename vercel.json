@@ -10,7 +10,7 @@
       "use": "@vercel/static"
     },
     {
-      "src": "**/*.js",
+      "src": "api.service.js",
       "use": "@vercel/static"
     }
   ],
@@ -20,7 +20,7 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/((?!api).*)",
       "dest": "/$1"
     }
   ],

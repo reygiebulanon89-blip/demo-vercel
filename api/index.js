@@ -96,12 +96,12 @@ app.get('/api/setup', async (req, res) => {
 });
 
 // Routes
-app.use('/auth', require('./routes/auth'));
-app.use('/users', require('./routes/users'));
-app.use('/feed', require('./routes/feed'));
-app.use('/notifications', require('./routes/notifications'));
-app.use('/challenges', require('./routes/challenges'));
-app.use('/track', require('./routes/track'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/feed', require('./routes/feed'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/challenges', require('./routes/challenges'));
+app.use('/api/track', require('./routes/track'));
 
 // Health check
 app.get('/api/health', (req, res) => {
