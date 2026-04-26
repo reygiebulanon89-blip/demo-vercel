@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Check if email already exists
-    const [existing] = await db.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
+    const existing = await db.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
     if (existing.rows.length > 0) {
       return res.status(400).json({ status: 'error', message: 'Email is already registered' });
     }
@@ -39,7 +39,7 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert user
-    const [result] = await db.query(
+    const result = await db.query(
       'INSERT INTO users (username, email, password, bio) VALUES ($1, $2, $3, $4) RETURNING id',
       [username, email.toLowerCase(), hashedPassword, bio]
     );
@@ -80,7 +80,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Find user
-    const [users] = await db.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()]);
+    const users = await db.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()]);
     if (users.rows.length === 0) {
       return res.status(401).json({ status: 'error', message: 'Invalid email or password' });
     }

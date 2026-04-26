@@ -21,7 +21,7 @@ const authenticate = (req, res, next) => {
 // Get tracking data
 router.get('/', authenticate, async (req, res) => {
   try {
-    const [tracks] = await db.query(
+    const tracks = await db.query(
       'SELECT * FROM tracking WHERE user_id = $1 ORDER BY created_at DESC LIMIT 30',
       [req.user.id]
     );
@@ -36,7 +36,7 @@ router.get('/', authenticate, async (req, res) => {
 router.post('/', authenticate, async (req, res) => {
   try {
     const { food_item, quantity, unit, waste_type, notes } = req.body;
-    const [result] = await db.query(
+    const result = await db.query(
       'INSERT INTO tracking (user_id, food_item, quantity, unit, waste_type, notes) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
       [req.user.id, food_item, quantity, unit, waste_type, notes || '']
     );

@@ -21,7 +21,7 @@ const authenticate = (req, res, next) => {
 // Get feed posts
 router.get('/', async (req, res) => {
   try {
-    const [posts] = await db.query(`
+    const posts = await db.query(`
       SELECT p.*, u.username, u.profile_pic 
       FROM posts p 
       JOIN users u ON p.user_id = u.id 
@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
 router.post('/', authenticate, async (req, res) => {
   try {
     const { content, image_url } = req.body;
-    const [result] = await db.query(
+    const result = await db.query(
       'INSERT INTO posts (user_id, content, image_url) VALUES ($1, $2, $3) RETURNING id',
       [req.user.id, content, image_url || null]
     );

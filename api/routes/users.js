@@ -23,7 +23,7 @@ const authenticate = (req, res, next) => {
 // Get current user profile
 router.get('/profile', authenticate, async (req, res) => {
   try {
-    const [users] = await db.query('SELECT id, username, email, bio, profile_pic, created_at FROM users WHERE id = $1', [req.user.id]);
+    const users = await db.query('SELECT id, username, email, bio, profile_pic, created_at FROM users WHERE id = $1', [req.user.id]);
     if (users.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }
@@ -37,7 +37,7 @@ router.get('/profile', authenticate, async (req, res) => {
 // Get user by ID
 router.get('/:id', async (req, res) => {
   try {
-    const [users] = await db.query('SELECT id, username, bio, profile_pic, created_at FROM users WHERE id = $1', [req.params.id]);
+    const users = await db.query('SELECT id, username, bio, profile_pic, created_at FROM users WHERE id = $1', [req.params.id]);
     if (users.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }

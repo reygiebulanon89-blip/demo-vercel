@@ -21,7 +21,7 @@ const authenticate = (req, res, next) => {
 // Get notifications
 router.get('/', authenticate, async (req, res) => {
   try {
-    const [notifications] = await db.query(
+    const notifications = await db.query(
       'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
       [req.user.id]
     );

@@ -21,7 +21,7 @@ const authenticate = (req, res, next) => {
 // Get all challenges
 router.get('/', async (req, res) => {
   try {
-    const [challenges] = await db.query('SELECT * FROM challenges ORDER BY created_at DESC');
+    const challenges = await db.query('SELECT * FROM challenges ORDER BY created_at DESC');
     res.json({ status: 'success', data: { challenges: challenges.rows } });
   } catch (error) {
     console.error('Get challenges error:', error);
