@@ -13,11 +13,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Get request method and path
 $request_method = $_SERVER['REQUEST_METHOD'];
 $request_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-// Remove /api/ prefix (IMPORTANT for InfinityFree)
+// REMOVE /api/ prefix
 $request_path = preg_replace('#^/api/#', '', $request_path);
 
 // Clean slashes
 $request_path = trim($request_path, '/');
+
+// DEBUG
+echo json_encode([
+    "uri" => $_SERVER['REQUEST_URI'],
+    "path_after_fix" => $request_path
+]);
+exit;
 
 // Parse URL segments
 $segments = explode('/', $request_path);
