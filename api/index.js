@@ -13,8 +13,8 @@ app.get('/api/setup', async (req, res) => {
   try {
     const db = require('./config/database');
     
-    const schema = `
-    CREATE TABLE IF NOT EXISTS users (
+    const tables = [
+      `CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(20) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
@@ -22,42 +22,37 @@ app.get('/api/setup', async (req, res) => {
         bio TEXT DEFAULT '',
         profile_pic TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS posts (
+      )`,
+      `CREATE TABLE IF NOT EXISTS posts (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         content TEXT NOT NULL,
         image_url TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS comments (
+      )`,
+      `CREATE TABLE IF NOT EXISTS comments (
         id SERIAL PRIMARY KEY,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         content TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS comment_replies (
+      )`,
+      `CREATE TABLE IF NOT EXISTS comment_replies (
         id SERIAL PRIMARY KEY,
         comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         content TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS notifications (
+      )`,
+      `CREATE TABLE IF NOT EXISTS notifications (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         type VARCHAR(50) NOT NULL,
         message TEXT NOT NULL,
         is_read BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS challenges (
+      )`,
+      `CREATE TABLE IF NOT EXISTS challenges (
         id SERIAL PRIMARY KEY,
         title VARCHAR(100) NOT NULL,
         description TEXT,
@@ -65,17 +60,15 @@ app.get('/api/setup', async (req, res) => {
         end_date DATE,
         goal INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS challenge_participants (
+      )`,
+      `CREATE TABLE IF NOT EXISTS challenge_participants (
         id SERIAL PRIMARY KEY,
         challenge_id INTEGER REFERENCES challenges(id) ON DELETE CASCADE,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(challenge_id, user_id)
-    );
-    
-    CREATE TABLE IF NOT EXISTS tracking (
+      )`,
+      `CREATE TABLE IF NOT EXISTS tracking (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         food_item VARCHAR(100) NOT NULL,
@@ -84,10 +77,13 @@ app.get('/api/setup', async (req, res) => {
         waste_type VARCHAR(50),
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    `;
+      )`
+    ];
     
-    await db.query(schema);
+    for (const sql of tables) {
+      await db.query(sql);
+    }
+    
     res.json({ status: 'success', message: 'Database tables created successfully!' });
   } catch (error) {
     console.error('Setup error:', error);
