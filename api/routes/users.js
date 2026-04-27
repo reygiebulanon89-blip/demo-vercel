@@ -2,39 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads/profile_pics');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, 'user_' + req.user.id + '_' + Date.now() + ext);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp|gif/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = allowed.test(file.mimetype);
-    if (ext && mime) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed (JPG, PNG, WEBP, GIF)'));
-    }
-  }
-});
 
 // Middleware to verify token
 const authenticate = (req, res, next) => {
@@ -94,15 +61,18 @@ router.put('/profile', authenticate, async (req, res) => {
 });
 
 // Update profile with file upload (POST for multipart/form-data)
-router.post('/profile', authenticate, upload.single('profile_pic_file'), async (req, res) => {
+router.post('/profile', authenticate, async (req, res) => {
   try {
-    const { username, bio, profile_pic } = req.body;
+    const { username, bio, profile_pic, profile_pic_data } = req.body;
     
     let profilePicPath = profile_pic || null;
     
-    // If a file was uploaded, set the path
-    if (req.file) {
-      profilePicPath = '/api/uploads/profile_pics/' + req.file.filename;
+    // If base64 image data is provided, store it directly
+    if (profile_pic_data) {
+      // Validate base64 data URL format
+      if (profile_pic_data.startsWith('data:image/')) {
+        profilePicPath = profile_pic_data;
+      }
     }
     
     await db.query('UPDATE users SET username = $1, bio = $2, profile_pic = $3 WHERE id = $4', 
@@ -116,19 +86,6 @@ router.post('/profile', authenticate, upload.single('profile_pic_file'), async (
     console.error('Update profile error:', error);
     res.status(500).json({ status: 'error', message: 'Error updating profile' });
   }
-});
-
-// Error handling middleware for multer
-router.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ status: 'error', message: 'Profile picture must be 2MB or less' });
-    }
-    return res.status(400).json({ status: 'error', message: err.message });
-  } else if (err) {
-    return res.status(400).json({ status: 'error', message: err.message });
-  }
-  next();
 });
 
 module.exports = router;

@@ -135,23 +135,20 @@ class ApiService {
    * Update user profile
    */
   async updateProfile(username, bio, profilePicUrl = null, profilePicFile = null) {
-    // If a file is provided, send multipart/form-data (do NOT set Content-Type manually).
+    // If a file is provided, convert to base64 and send as JSON
     if (profilePicFile) {
-      const form = new FormData();
-      form.append('username', username ?? '');
-      form.append('bio', bio ?? '');
-      if (profilePicUrl) form.append('profile_pic', profilePicUrl);
-      form.append('profile_pic_file', profilePicFile);
-
-      const headers = {};
-      if (this.token) {
-        headers['Authorization'] = `Bearer ${this.token}`;
-      }
+      const base64Data = await this.fileToBase64(profilePicFile);
+      
+      const body = { 
+        username: username ?? '', 
+        bio: bio ?? '',
+        profile_pic_data: base64Data
+      };
 
       const response = await fetch(`${API_BASE_URL}/users/profile`, {
         method: 'POST',
-        headers,
-        body: form
+        headers: this.getHeaders(),
+        body: JSON.stringify(body)
       });
       return this.handleResponse(response);
     }
@@ -166,6 +163,18 @@ class ApiService {
       body: JSON.stringify(body)
     });
     return this.handleResponse(response);
+  }
+
+  /**
+   * Convert file to base64 data URL
+   */
+  fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
   }
 
   /**
