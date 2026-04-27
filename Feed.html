@@ -293,6 +293,52 @@ padding: 12px;
 text-align: center;
 }
 
+.notif-icon {
+margin-right: 6px;
+font-size: 14px;
+}
+
+.notif-item {
+padding: 10px;
+border: 1px solid #edf3ee;
+background: #f9fcfa;
+border-radius: 10px;
+font-size: 13px;
+color: #344a37;
+margin-bottom: 8px;
+position: relative;
+}
+
+.notif-item.unread {
+background: #e8f4fd;
+border-color: #cce4f7;
+}
+
+.notif-item .notif-type {
+display: inline-block;
+padding: 2px 6px;
+border-radius: 4px;
+font-size: 10px;
+font-weight: 700;
+text-transform: uppercase;
+margin-bottom: 4px;
+}
+
+.notif-item .notif-type.like {
+background: #ffebee;
+color: #c62828;
+}
+
+.notif-item .notif-type.comment {
+background: #e3f2fd;
+color: #1565c0;
+}
+
+.notif-item .notif-type.reply {
+background: #e8f5e9;
+color: #2e7d32;
+}
+
 .debug-panel {
 margin-top: 12px;
 padding: 12px;
@@ -432,6 +478,10 @@ align-items: center;
 margin-bottom: 12px;
 }
 
+.action-count {
+font-weight: 600;
+}
+
 .action {
 border: 1px solid #d8e6d9;
 background: #fff;
@@ -473,6 +523,28 @@ padding: 8px 10px;
 border-radius: 10px;
 background: #f8fbf8;
 border: 1px solid #edf3ee;
+}
+
+.comment-author {
+display: inline-flex;
+align-items: center;
+gap: 4px;
+font-weight: 700;
+color: var(--green-800);
+}
+
+.comment-author-avatar {
+width: 20px;
+height: 20px;
+border-radius: 50%;
+background: var(--green-100);
+display: inline-flex;
+align-items: center;
+justify-content: center;
+font-size: 10px;
+font-weight: 700;
+color: var(--green-800);
+text-transform: uppercase;
 }
 
 .comment-reply {
@@ -930,9 +1002,10 @@ const collapsed = hasChildren ? isThreadCollapsed(comment.id) : false;
 const currentRootId = rootCommentId || comment.id;
 const parentForReply = depth >= MAX_REPLY_DEPTH ? currentRootId : comment.id;
 const depthNote = depth >= MAX_REPLY_DEPTH ? ` (max depth reached - replies stay under ${escapeHtml(comment.username)}'s main thread)` : '';
+const authorInitials = (comment.username || 'U').substring(0, 2).toUpperCase();
 return `
 <div class="comment${clampedDepth > 0 ? ' comment-reply' : ''}"${indentStyle}>
-<div><strong>${escapeHtml(comment.username)}</strong> ${escapeHtml(comment.content)}</div>
+<div><span class="comment-author"><span class="comment-author-avatar">${escapeHtml(authorInitials)}</span>${escapeHtml(comment.username)}</span> ${escapeHtml(comment.content)}</div>
 <div class="comment-meta">
 <span>${comment.createdAt ? formatClockTime(comment.createdAt) : ''}</span>
 <div>
@@ -988,15 +1061,21 @@ notifList.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
 return;
 }
 
-notifList.innerHTML = notifications.slice(0, 20).map((item) => `
-<div class="notif-item">
+notifList.innerHTML = notifications.slice(0, 20).map((item) => {
+const typeClass = (item.type || '').toLowerCase();
+const typeLabel = typeClass === 'like' ? 'Like' : typeClass === 'comment' ? 'Comment' : typeClass === 'reply' ? 'Reply' : '';
+return `
+<div class="notif-item${item.is_read === false ? ' unread' : ''}">
 <button class="notif-delete" type="button" data-delete-notification="${item.id}" aria-label="Delete notification">×</button>
+${typeLabel ? `<span class="notif-type ${typeClass}">${typeLabel}</span>` : ''}
+${item.interactionIcon ? `<span class="notif-icon">${item.interactionIcon}</span>` : ''}
 ${item.actorName
 ? `<strong>${escapeHtml(item.actorName)}</strong> ${escapeHtml(item.actionText || '')}`
 : escapeHtml(item.text || item.message || '')}
 <span class="notif-time">${formatClockTime(item.timestamp)}</span>
 </div>
-`).join('');
+`;
+}).join('');
 }
 
 function normalizeNotification(item) {
@@ -1004,22 +1083,30 @@ const actorName = (item.actor_username || item.actor_name || '').trim();
 const type = (item.type || '').toLowerCase();
 let resolvedText = item.text || item.message || '';
 let actionText = '';
+let interactionIcon = '';
 
-if (actorName && type === 'like') {
+// Determine interaction type and icon
+if (type === 'like' || (actorName && type !== 'comment' && type !== 'reply' && resolvedText.toLowerCase().includes('like'))) {
+interactionIcon = '❤️';
 actionText = 'liked your post.';
 resolvedText = `${actorName} ${actionText}`;
-}
-
-if (actorName && type === 'comment') {
+} else if (type === 'comment' || resolvedText.toLowerCase().includes('comment')) {
+interactionIcon = '💬';
 const serverMessage = (item.message || '').trim();
 actionText = serverMessage || 'commented on your post.';
 resolvedText = `${actorName} ${actionText}`;
-}
-
-if (actorName && type === 'reply') {
+} else if (type === 'reply' || resolvedText.toLowerCase().includes('reply')) {
+interactionIcon = '↩️';
 const serverMessage = (item.message || '').trim();
 actionText = serverMessage || 'replied to your comment.';
 resolvedText = `${actorName} ${actionText}`;
+} else if (actorName) {
+// Default: treat as a like if we have an actor name but unclear type
+interactionIcon = '❤️';
+actionText = 'interacted with your post.';
+resolvedText = `${actorName} ${actionText}`;
+} else {
+interactionIcon = '🔔';
 }
 
 return {
@@ -1027,6 +1114,8 @@ id: Number(item.id || 0),
 text: resolvedText,
 actorName: actorName || '',
 actionText,
+interactionIcon: interactionIcon,
+type: type,
 timestamp: item.created_at ? new Date(item.created_at).getTime() : (item.timestamp || Date.now()),
 is_read: Number(item.is_read || 0) === 1
 };
@@ -1151,7 +1240,7 @@ renderDebugPanel();
 function startNotificationPolling() {
 if (notificationPollTimer) return;
 pollNotificationsOnce();
-notificationPollTimer = window.setInterval(pollNotificationsOnce, 7000);
+notificationPollTimer = window.setInterval(pollNotificationsOnce, 5000);
 }
 
 function stopNotificationPolling() {
@@ -1330,7 +1419,7 @@ console.error('Live interaction sync failed', error);
 function startLiveInteractionSync() {
 if (interactionSyncTimer) return;
 syncFeedInteractions();
-interactionSyncTimer = window.setInterval(syncFeedInteractions, 3000);
+interactionSyncTimer = window.setInterval(syncFeedInteractions, 2500);
 }
 
 async function handleBadgeShareFromChallenges() {
@@ -1787,7 +1876,10 @@ if (!event.target.closest('[data-emoji-toggle]') && !event.target.closest('[data
 feedEl.querySelectorAll('[data-emoji-picker].open').forEach((picker) => {
 picker.classList.remove('open');
 });
+}
+});
 
+// Handle notification deletion
 notifList.addEventListener('click', async (event) => {
 const btn = event.target.closest('button[data-delete-notification]');
 if (!btn) return;
@@ -1802,10 +1894,9 @@ if (removed && removed.is_read === false) {
 unreadNotifications = Math.max(0, unreadNotifications - 1);
 }
 renderNotifications();
+showStatus('Notification deleted');
 } catch (error) {
 showStatus('Error: ' + error.message);
-}
-});
 }
 });
 </script>

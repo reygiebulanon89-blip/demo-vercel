@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Post.php';
 require_once __DIR__ . '/../models/Comment.php';
 require_once __DIR__ . '/../models/Notification.php';
+require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../utils/Response.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../utils/Helper.php';
@@ -149,13 +150,18 @@ class FeedController {
             $post_owner_id = $post->getPostOwnerId($id);
             if ($post_owner_id && (int)$post_owner_id !== (int)$decoded['id']) {
                 try {
+                    // Get actor username for notification
+                    $userModel = new User();
+                    $actor = $userModel->findById($decoded['id']);
+                    $actorUsername = $actor ? $actor['username'] : 'Someone';
+                    
                     $notification = new Notification();
                     $notification->create(
                         (int)$post_owner_id,
                         (int)$decoded['id'],
                         (int)$id,
                         'like',
-                        'Someone liked your post'
+                        $actorUsername . ' liked your post'
                     );
                 } catch (Throwable $e) {
                     error_log('Notification create failed (like): ' . $e->getMessage());
@@ -223,6 +229,11 @@ class FeedController {
         $comment_id = $comment->create();
 
         if ($comment_id) {
+            // Get actor username for notifications
+            $userModel = new User();
+            $actor = $userModel->findById($decoded['id']);
+            $actorUsername = $actor ? $actor['username'] : 'Someone';
+            
             $post = new Post();
             $post_owner_id = $post->getPostOwnerId($post_id);
             if ($post_owner_id && (int)$post_owner_id !== (int)$decoded['id']) {
@@ -237,7 +248,7 @@ class FeedController {
                         (int)$decoded['id'],
                         (int)$post_id,
                         'comment',
-                        'commented: "' . $comment_preview . '"'
+                        $actorUsername . ' commented: "' . $comment_preview . '"'
                     );
                 } catch (Throwable $e) {
                     error_log('Notification create failed (comment): ' . $e->getMessage());
@@ -260,7 +271,7 @@ class FeedController {
                                 (int)$decoded['id'],
                                 (int)$post_id,
                                 'reply',
-                                'replied: "' . $comment_preview . '"'
+                                $actorUsername . ' replied: "' . $comment_preview . '"'
                             );
                         } catch (Throwable $e) {
                             error_log('Notification create failed (reply): ' . $e->getMessage());
