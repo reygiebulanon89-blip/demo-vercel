@@ -12,9 +12,6 @@ app.use(express.json());
 // Serve static files (HTML, JS, CSS, images)
 app.use(express.static(path.join(__dirname, '..')));
 
-// Serve uploaded files
-app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // Database setup endpoint (for initial setup only)
 app.get('/api/setup', async (req, res) => {
   try {
