@@ -64,19 +64,30 @@ router.post('/', authenticate, async (req, res) => {
 router.post('/:id/join', authenticate, async (req, res) => {
   try {
     // Check if already joined
-    const existing = await db.query(
+    let participant = await db.query(
       'SELECT * FROM challenge_participants WHERE challenge_id = $1 AND user_id = $2',
       [req.params.id, req.user.id]
     );
-    if (existing.rows.length > 0) {
-      return res.json({ status: 'success', message: 'Already joined' });
+    if (participant.rows.length === 0) {
+      await db.query(
+        'INSERT INTO challenge_participants (challenge_id, user_id) VALUES ($1, $2)',
+        [req.params.id, req.user.id]
+      );
+      participant = await db.query(
+        'SELECT * FROM challenge_participants WHERE challenge_id = $1 AND user_id = $2',
+        [req.params.id, req.user.id]
+      );
     }
-    
-    await db.query(
-      'INSERT INTO challenge_participants (challenge_id, user_id) VALUES ($1, $2)',
-      [req.params.id, req.user.id]
-    );
-    res.json({ status: 'success', message: 'Joined challenge' });
+
+    // Get challenge details
+    const challenge = await db.query('SELECT * FROM challenges WHERE id = $1', [req.params.id]);
+    if (challenge.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Challenge not found' });
+    }
+
+    // Merge participant and challenge info
+    const joined = { ...participant.rows[0], ...challenge.rows[0] };
+    res.json({ status: 'success', data: joined, message: 'Joined challenge' });
   } catch (error) {
     console.error('Join challenge error:', error);
     res.status(500).json({ status: 'error', message: 'Error joining challenge' });
