@@ -38,6 +38,10 @@ require_once __DIR__ . '/utils/Response.php';
 
 // Routes
 try {
+    // Health check
+    if ($request_path === 'health' && $request_method === 'GET') {
+        Response::success(['status' => 'ok', 'message' => 'WasteLess API is running'], 'API is running');
+    }
     // Auth routes
     if ($request_path === 'auth/register' && $request_method === 'POST') {
         $controller = new AuthController();

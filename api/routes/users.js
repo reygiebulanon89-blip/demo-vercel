@@ -27,7 +27,7 @@ router.get('/profile', authenticate, async (req, res) => {
     if (users.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }
-    res.json({ status: 'success', data: { user: users.rows[0] } });
+    res.json({ status: 'success', data: users.rows[0] });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ status: 'error', message: 'Error getting profile' });

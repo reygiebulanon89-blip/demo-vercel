@@ -11,7 +11,8 @@ class NotificationController {
         $limit = $_GET['limit'] ?? 30;
         $after_id = $_GET['after_id'] ?? 0;
 
-        Helper::paginationValidate($limit, 0);
+        $offset = 0;
+        Helper::paginationValidate($limit, $offset);
         $after_id = (int)$after_id;
         if ($after_id < 0) {
             Response::badRequest('Invalid after_id');
