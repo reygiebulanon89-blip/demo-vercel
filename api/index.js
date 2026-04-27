@@ -69,6 +69,7 @@ app.get('/api/setup', async (req, res) => {
         id SERIAL PRIMARY KEY,
         challenge_id INTEGER REFERENCES challenges(id) ON DELETE CASCADE,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        progress INTEGER DEFAULT 0,
         joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(challenge_id, user_id)
       )`,
