@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -7,6 +8,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve static files (HTML, JS, CSS, images)
+app.use(express.static(path.join(__dirname, '..')));
 
 // Database setup endpoint (for initial setup only)
 app.get('/api/setup', async (req, res) => {
