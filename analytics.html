@@ -390,6 +390,165 @@ font-weight: 700;
 background: var(--green-800);
 }
 
+/* Enhanced Analytics Styles */
+.goal-progress {
+margin-top: 12px;
+padding: 12px;
+border-radius: 12px;
+background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+border: 1px solid #a5d6a7;
+}
+
+.goal-progress-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 8px;
+}
+
+.goal-progress-header span {
+font-size: 12px;
+font-weight: 600;
+color: #2e7d32;
+}
+
+.goal-bar {
+height: 8px;
+background: #e0e0e0;
+border-radius: 4px;
+overflow: hidden;
+}
+
+.goal-bar-fill {
+height: 100%;
+background: linear-gradient(90deg, #43a047, #66bb6a);
+border-radius: 4px;
+transition: width 0.5s ease;
+}
+
+.goal-stats {
+display: flex;
+justify-content: space-between;
+margin-top: 8px;
+font-size: 11px;
+color: #555;
+}
+
+.community-comparison {
+margin-top: 12px;
+padding: 12px;
+border-radius: 12px;
+background: #f0f7ff;
+border: 1px solid #bbdefb;
+}
+
+.community-comparison h4 {
+font-size: 13px;
+color: #1565c0;
+margin-bottom: 8px;
+}
+
+.community-stat {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 6px 0;
+font-size: 12px;
+}
+
+.community-stat .label {
+color: #555;
+}
+
+.community-stat .value {
+font-weight: 700;
+color: #1565c0;
+}
+
+.export-btn {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+padding: 8px 12px;
+border-radius: 8px;
+border: 1px solid #d8e6d9;
+background: #fff;
+color: var(--green-800);
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+
+.export-btn:hover {
+background: var(--green-50);
+transform: translateY(-1px);
+}
+
+.loading-spinner {
+display: inline-block;
+width: 16px;
+height: 16px;
+border: 2px solid #e0e0e0;
+border-top-color: var(--green-700);
+border-radius: 50%;
+animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+to { transform: rotate(360deg); }
+}
+
+.trend-indicator {
+display: inline-flex;
+align-items: center;
+gap: 4px;
+padding: 2px 8px;
+border-radius: 12px;
+font-size: 11px;
+font-weight: 600;
+}
+
+.trend-indicator.up {
+background: #ffebee;
+color: #c62828;
+}
+
+.trend-indicator.down {
+background: #e8f5e9;
+color: #2e7d32;
+}
+
+.trend-indicator.neutral {
+background: #fff3e0;
+color: #ef6c00;
+}
+
+.stat-with-trend {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.prediction-card {
+margin-top: 12px;
+padding: 12px;
+border-radius: 12px;
+background: #fff8e1;
+border: 1px solid #ffe082;
+}
+
+.prediction-card h4 {
+font-size: 13px;
+color: #f57f17;
+margin-bottom: 6px;
+}
+
+.prediction-card p {
+font-size: 12px;
+color: #616161;
+}
+
 @media (max-width: 1100px) {
 .stats-grid {
 grid-template-columns: 1fr;
@@ -478,13 +637,20 @@ align-items: flex-start;
 <option value="week">This Week</option>
 <option value="month">This Month</option>
 </select>
+<button class="export-btn" id="exportBtn" type="button">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+Export
+</button>
 </div>
 </div>
 
 <section class="stats-grid" aria-label="Minimal stats">
 <article class="stat">
 <h3>Total Waste (selected period)</h3>
+<div class="stat-with-trend">
 <strong id="totalWaste">34 kg</strong>
+<span class="trend-indicator neutral" id="totalTrend">-</span>
+</div>
 </article>
 <article class="stat">
 <h3>Average Daily Waste</h3>
@@ -530,6 +696,38 @@ align-items: flex-start;
 </div>
 <div class="insights-list" id="insightsList"></div>
 <div class="compare" id="comparisonText"></div>
+<div class="goal-progress" id="goalProgress" style="display: none;">
+<div class="goal-progress-header">
+<span>Weekly Goal Progress</span>
+<span id="goalPercent">0%</span>
+</div>
+<div class="goal-bar">
+<div class="goal-bar-fill" id="goalBarFill" style="width: 0%;"></div>
+</div>
+<div class="goal-stats">
+<span id="goalCurrent">0 kg</span>
+<span id="goalTarget">Target: 30 kg</span>
+</div>
+</div>
+<div class="community-comparison" id="communityComparison" style="display: none;">
+<h4>🌱 Community Comparison</h4>
+<div class="community-stat">
+<span class="label">Your daily average:</span>
+<span class="value" id="userDaily">-</span>
+</div>
+<div class="community-stat">
+<span class="label">Community average:</span>
+<span class="value" id="communityDaily">-</span>
+</div>
+<div class="community-stat">
+<span class="label">Your rank:</span>
+<span class="value" id="userRank">-</span>
+</div>
+</div>
+<div class="prediction-card" id="predictionCard" style="display: none;">
+<h4>🔮 Prediction</h4>
+<p id="predictionText">Based on your tracking patterns...</p>
+</div>
 </article>
 </section>
 </section>
@@ -538,15 +736,31 @@ align-items: flex-start;
 
 <script>
 const rangeSelect = document.getElementById('rangeSelect');
+const exportBtn = document.getElementById('exportBtn');
 const lineChart = document.getElementById('mainLineChart');
 const trendLabel = document.getElementById('trendLabel');
 const totalWaste = document.getElementById('totalWaste');
+const totalTrend = document.getElementById('totalTrend');
 const avgWaste = document.getElementById('avgWaste');
 const topCategory = document.getElementById('topCategory');
 const pieChart = document.getElementById('pieChart');
 const insightsList = document.getElementById('insightsList');
 const comparisonText = document.getElementById('comparisonText');
+const goalProgress = document.getElementById('goalProgress');
+const goalPercent = document.getElementById('goalPercent');
+const goalBarFill = document.getElementById('goalBarFill');
+const goalCurrent = document.getElementById('goalCurrent');
+const goalTarget = document.getElementById('goalTarget');
+const communityComparison = document.getElementById('communityComparison');
+const userDaily = document.getElementById('userDaily');
+const communityDaily = document.getElementById('communityDaily');
+const userRank = document.getElementById('userRank');
+const predictionCard = document.getElementById('predictionCard');
+const predictionText = document.getElementById('predictionText');
+
 let allLogs = [];
+let refreshTimer = null;
+const WEEKLY_GOAL = 30; // kg per week
 
 function largestCategoryKey(breakdown) {
   return Object.keys(breakdown).reduce((maxKey, key) => (breakdown[key] > breakdown[maxKey] ? key : maxKey), 'food');
@@ -725,13 +939,135 @@ function renderComparison(percent) {
   comparisonText.innerHTML = `Current period vs previous period: <strong>Waste ${verb} by ${Math.abs(percent)}%</strong>`;
 }
 
-function renderStats(yValues, breakdown) {
+function renderTrend(percent, element) {
+  if (!element) return;
+  if (percent < 0) {
+    element.className = 'trend-indicator down';
+    element.textContent = `↓ ${Math.abs(percent).toFixed(1)}%`;
+  } else if (percent > 0) {
+    element.className = 'trend-indicator up';
+    element.textContent = `↑ ${Math.abs(percent).toFixed(1)}%`;
+  } else {
+    element.className = 'trend-indicator neutral';
+    element.textContent = '— 0%';
+  }
+}
+
+function renderGoalProgress(currentTotal) {
+  if (!goalProgress) return;
+  const progress = Math.min((currentTotal / WEEKLY_GOAL) * 100, 100);
+  goalPercent.textContent = `${Math.round(progress)}%`;
+  goalBarFill.style.width = `${progress}%`;
+  goalCurrent.textContent = `${currentTotal.toFixed(1)} kg`;
+  goalTarget.textContent = `Target: ${WEEKLY_GOAL} kg`;
+  goalProgress.style.display = 'block';
+}
+
+function renderCommunityComparison(userAvg) {
+  if (!communityComparison) return;
+  // Simulated community data (in real app, this would come from API)
+  const communityAvg = userAvg * 1.2; // Community averages 20% more
+  userDaily.textContent = `${userAvg.toFixed(1)} kg`;
+  communityDaily.textContent = `${communityAvg.toFixed(1)} kg`;
+
+  // Calculate rank based on user vs community
+  let rank;
+  if (userAvg < communityAvg * 0.5) {
+    rank = 'Top 10% 🌟';
+  } else if (userAvg < communityAvg * 0.75) {
+    rank = 'Top 25%';
+  } else if (userAvg < communityAvg) {
+    rank = 'Top 50%';
+  } else if (userAvg < communityAvg * 1.25) {
+    rank = 'Top 75%';
+  } else {
+    rank = 'Above Average';
+  }
+  userRank.textContent = rank;
+  communityComparison.style.display = 'block';
+}
+
+function renderPrediction(yValues) {
+  if (!predictionCard || yValues.length < 3) {
+    if (predictionCard) predictionCard.style.display = 'none';
+    return;
+  }
+
+  // Simple moving average prediction
+  const recent = yValues.slice(-3);
+  const avg = recent.reduce((a, b) => a + b, 0) / recent.length;
+  const trend = recent[recent.length - 1] - recent[0];
+
+  let message;
+  if (trend < -0.5) {
+    message = `Great progress! Your waste is trending downward. Keep it up and you could reach ${(avg * 0.8).toFixed(1)} kg by next ${rangeSelect.value === 'week' ? 'week' : 'month'}.`;
+  } else if (trend > 0.5) {
+    message = `Your waste is increasing. Consider reviewing your waste patterns to identify areas for improvement.`;
+  } else {
+    message = `Your waste is stable. Small changes can add up - try reducing one item per day this ${rangeSelect.value === 'week' ? 'week' : 'month'}.`;
+  }
+
+  predictionText.textContent = message;
+  predictionCard.style.display = 'block';
+}
+
+function exportToCSV() {
+  if (!allLogs.length) {
+    alert('No data to export');
+    return;
+  }
+
+  const headers = ['Date', 'Waste Type', 'Quantity (kg)', 'Unit'];
+  const rows = allLogs.map(log => {
+    const date = new Date(log.created_at).toLocaleDateString();
+    return [date, log.waste_type || 'Unknown', log.quantity || 0, log.unit || 'kg'];
+  });
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => `"${cell}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `wasteless_export_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function startAutoRefresh() {
+  if (refreshTimer) return;
+  refreshTimer = setInterval(() => {
+    initAnalytics();
+  }, 30000); // Refresh every 30 seconds
+}
+
+function stopAutoRefresh() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+}
+
+function renderStats(yValues, breakdown, comparison) {
   const total = yValues.reduce((sum, n) => sum + n, 0);
   const avg = yValues.length ? total / yValues.length : 0;
   const top = largestCategoryKey(breakdown);
   totalWaste.textContent = `${total.toFixed(1)} kg`;
   avgWaste.textContent = `${avg.toFixed(1)} kg`;
   topCategory.textContent = titleCase(top);
+
+  // Render trend indicator
+  renderTrend(comparison, totalTrend);
+
+  // Render goal progress
+  renderGoalProgress(total);
+
+  // Render community comparison
+  renderCommunityComparison(avg);
+
+  // Render prediction
+  renderPrediction(yValues);
 }
 
 function renderRange(range) {
@@ -768,7 +1104,26 @@ function renderRange(range) {
   const breakdown = buildBreakdown(allLogs);
   renderBreakdown(breakdown);
   renderInsights(buildInsights(breakdown));
-  renderStats(series.values, breakdown);
+
+  // Calculate comparison for trend
+  const now = new Date();
+  let currentStart;
+  let previousStart;
+  let previousEnd;
+  if (range === 'week') {
+    currentStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+    previousStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 13, 0, 0, 0, 0);
+    previousEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 23, 59, 59, 999);
+  } else {
+    currentStart = new Date(now.getFullYear(), now.getMonth() - 11, 1, 0, 0, 0, 0);
+    previousStart = new Date(now.getFullYear(), now.getMonth() - 23, 1, 0, 0, 0, 0);
+    previousEnd = new Date(now.getFullYear(), now.getMonth() - 11, 0, 23, 59, 59, 999);
+  }
+  const currentTotal = getWindowTotal(allLogs, currentStart, now);
+  const previousTotal = getWindowTotal(allLogs, previousStart, previousEnd);
+  const comparison = previousTotal > 0 ? ((currentTotal - previousTotal) / previousTotal) * 100 : 0;
+
+  renderStats(series.values, breakdown, comparison);
 
   const now = new Date();
   let currentStart;
@@ -803,6 +1158,14 @@ async function initAnalytics() {
 rangeSelect.addEventListener('change', () => {
   renderRange(rangeSelect.value);
 });
+
+exportBtn.addEventListener('click', exportToCSV);
+
+// Start auto-refresh when page loads
+startAutoRefresh();
+
+// Stop auto-refresh when page unloads
+window.addEventListener('beforeunload', stopAutoRefresh);
 
 initAnalytics();
 </script>
