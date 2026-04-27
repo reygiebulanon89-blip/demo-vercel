@@ -104,6 +104,9 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/challenges', require('./routes/challenges'));
 app.use('/api/track', require('./routes/track'));
 
+// Alias for /api/user/challenges to match frontend expectation
+app.use('/api/user/challenges', require('./routes/challenges'));
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'WasteLess API is running' });
