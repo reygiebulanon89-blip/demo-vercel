@@ -21,14 +21,16 @@ const authenticate = (req, res, next) => {
 // Get feed posts
 router.get('/', async (req, res) => {
   try {
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = parseInt(req.query.offset) || 0;
     const posts = await db.query(`
       SELECT p.*, u.username, u.profile_pic 
       FROM posts p 
       JOIN users u ON p.user_id = u.id 
       ORDER BY p.created_at DESC 
-      LIMIT 50
-    `);
-    res.json({ status: 'success', data: { posts: posts.rows } });
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+    res.json({ status: 'success', data: posts.rows });
   } catch (error) {
     console.error('Get feed error:', error);
     res.status(500).json({ status: 'error', message: 'Error getting feed' });
@@ -38,12 +40,21 @@ router.get('/', async (req, res) => {
 // Create post
 router.post('/', authenticate, async (req, res) => {
   try {
-    const { content, image_url } = req.body;
+    const { content, image } = req.body;
     const result = await db.query(
-      'INSERT INTO posts (user_id, content, image_url) VALUES ($1, $2, $3) RETURNING id',
-      [req.user.id, content, image_url || null]
+      'INSERT INTO posts (user_id, content, image_url) VALUES ($1, $2, $3) RETURNING *',
+      [req.user.id, content, image || null]
     );
-    res.status(201).json({ status: 'success', message: 'Post created', data: { id: result.rows[0].id } });
+    
+    // Get user info for the response
+    const users = await db.query('SELECT username, profile_pic FROM users WHERE id = $1', [req.user.id]);
+    const user = users.rows[0];
+    
+    const post = result.rows[0];
+    post.username = user.username;
+    post.profile_pic = user.profile_pic;
+    
+    res.status(201).json({ status: 'success', data: post });
   } catch (error) {
     console.error('Create post error:', error);
     res.status(500).json({ status: 'error', message: 'Error creating post' });

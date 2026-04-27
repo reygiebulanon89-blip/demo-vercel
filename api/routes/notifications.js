@@ -43,4 +43,26 @@ router.put('/:id/read', authenticate, async (req, res) => {
   }
 });
 
+// Mark all as read
+router.post('/read', authenticate, async (req, res) => {
+  try {
+    await db.query('UPDATE notifications SET is_read = true WHERE user_id = $1', [req.user.id]);
+    res.json({ status: 'success', message: 'All notifications marked as read' });
+  } catch (error) {
+    console.error('Mark all read error:', error);
+    res.status(500).json({ status: 'error', message: 'Error marking notifications as read' });
+  }
+});
+
+// Delete notification
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    await db.query('DELETE FROM notifications WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    res.json({ status: 'success', message: 'Notification deleted' });
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({ status: 'error', message: 'Error deleting notification' });
+  }
+});
+
 module.exports = router;

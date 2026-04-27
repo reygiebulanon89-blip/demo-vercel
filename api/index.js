@@ -99,7 +99,9 @@ app.get('/api/setup', async (req, res) => {
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/posts', require('./routes/posts'));
 app.use('/api/feed', require('./routes/feed'));
+app.use('/api/comments', require('./routes/comments'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/challenges', require('./routes/challenges'));
 app.use('/api/track', require('./routes/track'));

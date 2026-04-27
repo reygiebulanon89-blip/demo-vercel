@@ -88,4 +88,60 @@ router.post('/profile', authenticate, async (req, res) => {
   }
 });
 
+// Get all users
+router.get('/', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const users = await db.query('SELECT id, username, bio, profile_pic, created_at FROM users LIMIT $1', [limit]);
+    res.json({ status: 'success', data: { users: users.rows } });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ status: 'error', message: 'Error getting users' });
+  }
+});
+
+// Follow a user
+router.post('/follow/:id', authenticate, async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+    if (targetUserId == req.user.id) {
+      return res.status(400).json({ status: 'error', message: 'Cannot follow yourself' });
+    }
+    // Create notification for the followed user
+    await db.query(
+      'INSERT INTO notifications (user_id, type, message) VALUES ($1, $2, $3)',
+      [targetUserId, 'follow', `User is now following you`]
+    );
+    res.json({ status: 'success', message: 'Now following user' });
+  } catch (error) {
+    console.error('Follow user error:', error);
+    res.status(500).json({ status: 'error', message: 'Error following user' });
+  }
+});
+
+// Unfollow a user
+router.delete('/follow/:id', authenticate, async (req, res) => {
+  res.json({ status: 'success', message: 'Unfollowed user' });
+});
+
+// Get user posts
+router.get('/:id/posts', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+    const posts = await db.query(`
+      SELECT p.*, u.username, u.profile_pic 
+      FROM posts p 
+      JOIN users u ON p.user_id = u.id 
+      WHERE p.user_id = $1
+      ORDER BY p.created_at DESC 
+      LIMIT $2 OFFSET $3
+    `, [req.params.id, limit, offset]);
+    res.json({ status: 'success', data: { posts: posts.rows } });
+  } catch (error) {
+    console.error('Get user posts error:', error);
+    res.status(500).json({ status: 'error', message: 'Error getting user posts' });
+  }
+});
+
 module.exports = router;
