@@ -104,7 +104,7 @@ app.use('/api/feed', require('./routes/feed'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/challenges', require('./routes/challenges'));
-app.use('/api/track', require('./routes/track'));
+app.use('/api/tracking', require('./routes/track'));
 
 // Alias for /api/user/challenges to match frontend expectation
 app.use('/api/user/challenges', require('./routes/challenges'));

@@ -799,8 +799,9 @@
       const wasteType = categoryField.value;
       const quantity = Number(quantityField.value);
       const unit = unitField.value;
+      const date = dateField.value;
 
-      if (!wasteType || !unit || !Number.isFinite(quantity) || quantity <= 0) {
+      if (!wasteType || !unit || !date || !Number.isFinite(quantity) || quantity <= 0) {
         showMessage('Please fill all fields with valid values');
         return;
       }
@@ -809,7 +810,7 @@
       submitBtn.textContent = 'Saving...';
 
       try {
-        await api.logWaste(wasteType, quantity, unit);
+        await api.logWaste(wasteType, quantity, unit, date);
         showMessage('✓ Waste entry logged successfully!');
         clearForm();
         await loadTrackingLogs();
