@@ -536,7 +536,7 @@ class ApiService {
    * Get user challenges
    */
   async getUserChallenges() {
-    const response = await fetch(`${API_BASE_URL}/user/challenges`, {
+    const response = await fetch(`${API_BASE_URL}/challenges/user/challenges`, {
       method: 'GET',
       headers: this.getHeaders()
     });
