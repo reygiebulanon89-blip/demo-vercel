@@ -25,7 +25,7 @@ router.get('/', authenticate, async (req, res) => {
       'SELECT * FROM tracking WHERE user_id = $1 ORDER BY created_at DESC LIMIT 30',
       [req.user.id]
     );
-    res.json({ status: 'success', data: { tracking: tracks.rows } });
+    res.json({ status: 'success', data: tracks.rows });
   } catch (error) {
     console.error('Get tracking error:', error);
     res.status(500).json({ status: 'error', message: 'Error getting tracking data' });
@@ -154,7 +154,7 @@ router.get('/logs', authenticate, async (req, res) => {
       'SELECT * FROM tracking WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',
       [req.user.id, limit, offset]
     );
-    res.json({ status: 'success', data: { tracking: tracks.rows } });
+    res.json({ status: 'success', data: tracks.rows });
   } catch (error) {
     console.error('Get tracking logs error:', error);
     res.status(500).json({ status: 'error', message: 'Error getting tracking logs' });
