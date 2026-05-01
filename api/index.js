@@ -89,6 +89,10 @@ app.get('/api/setup', async (req, res) => {
       await db.query(sql);
     }
     
+    // Migrations for existing tables
+    await db.query('ALTER TABLE challenge_participants ADD COLUMN IF NOT EXISTS progress INTEGER DEFAULT 0');
+    await db.query('ALTER TABLE challenge_participants ADD COLUMN IF NOT EXISTS joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+    
     res.json({ status: 'success', message: 'Database tables created successfully!' });
   } catch (error) {
     console.error('Setup error:', error);
