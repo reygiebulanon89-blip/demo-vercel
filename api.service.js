@@ -369,7 +369,7 @@ class ApiService {
    * Unlike post
    */
   async unlikePost(postId) {
-    const response = await fetch(`${API_BASE_URL}/posts/${postId}/unlike`, {
+    const response = await fetch(`${API_BASE_URL}/posts/${postId}/like`, {
       method: 'DELETE',
       headers: this.getHeaders()
     });

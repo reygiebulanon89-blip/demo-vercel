@@ -968,11 +968,48 @@ async function handleLike(postId) {
 }
 
 // Toggle comments
-function toggleComments(postId) {
+async function toggleComments(postId) {
 	const commentsEl = document.getElementById(`comments-${postId}`);
 	if (commentsEl) {
+		const isOpening = !commentsEl.classList.contains('open');
 		commentsEl.classList.toggle('open');
+		if (isOpening) {
+			await loadComments(postId);
+		}
 	}
+}
+
+async function loadComments(postId) {
+	try {
+		const response = await api.getComments(postId);
+		const comments = response.data?.comments || [];
+		renderComments(postId, comments);
+	} catch (error) {
+		console.error('Error loading comments:', error);
+	}
+}
+
+function renderComments(postId, comments) {
+	const listEl = document.getElementById(`comment-list-${postId}`);
+	if (!listEl) return;
+	
+	if (comments.length === 0) {
+		listEl.innerHTML = '<div style="font-size:12px; color:#666; text-align:center; padding: 4px;">No comments yet.</div>';
+		return;
+	}
+	
+	listEl.innerHTML = comments.map(c => `
+		<div class="comment">
+			<div class="comment-author">
+				<div class="comment-author-avatar">${(c.username || 'U').charAt(0)}</div>
+				${escapeHtml(c.username || 'User')}
+			</div>
+			<div style="margin-top: 4px;">${escapeHtml(c.content)}</div>
+			<div class="comment-meta">
+				<span>${timeAgo(c.created_at)}</span>
+			</div>
+		</div>
+	`).join('');
 }
 
 // Handle comment
@@ -987,7 +1024,18 @@ async function handleComment(postId) {
 	try {
 		await api.createComment(postId, content);
 		inputEl.value = '';
-		loadFeed();
+		await loadComments(postId);
+		
+		// Update comment count locally
+		const post = posts.find(p => p.id === postId);
+		if (post) {
+			post.comment_count = (post.comment_count || 0) + 1;
+			renderFeed();
+			// Re-open comments since renderFeed closed it
+			document.getElementById(`comments-${postId}`)?.classList.add('open');
+			await loadComments(postId);
+		}
+		
 		showStatus('Comment added!');
 	} catch (error) {
 		showStatus('Error adding comment');
