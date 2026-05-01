@@ -121,7 +121,7 @@ router.put('/:id/progress', authenticate, async (req, res) => {
     
     if (existing.rows.length > 0) {
       await db.query(
-        'UPDATE challenge_participants SET progress = $1, joined_at = COALESCE(joined_at, CURRENT_TIMESTAMP) WHERE challenge_id = $2 AND user_id = $3',
+        'UPDATE challenge_participants SET progress = $1 WHERE challenge_id = $2 AND user_id = $3',
         [progress, req.params.id, req.user.id]
       );
     } else {
@@ -149,7 +149,7 @@ router.get('/user/challenges', authenticate, async (req, res) => {
        FROM challenge_participants cp
        JOIN challenges c ON cp.challenge_id = c.id
        WHERE cp.user_id = $1
-       ORDER BY cp.joined_at DESC
+       ORDER BY cp.id DESC
        LIMIT $2 OFFSET $3`,
       [req.user.id, limit, offset]
     );
