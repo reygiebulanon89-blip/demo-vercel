@@ -134,7 +134,7 @@ router.put('/:id/progress', authenticate, async (req, res) => {
     res.json({ status: 'success', message: 'Progress updated' });
   } catch (error) {
     console.error('Update progress error:', error);
-    res.status(500).json({ status: 'error', message: 'Error updating progress' });
+    res.status(500).json({ status: 'error', message: 'Error updating progress: ' + error.message });
   }
 });
 
@@ -157,7 +157,7 @@ router.get('/user/challenges', authenticate, async (req, res) => {
     res.json({ status: 'success', data: result.rows });
   } catch (error) {
     console.error('Get user challenges error:', error);
-    res.status(500).json({ status: 'error', message: 'Error getting user challenges' });
+    res.status(500).json({ status: 'error', message: 'Error getting user challenges: ' + error.message });
   }
 });
 
