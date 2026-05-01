@@ -522,6 +522,62 @@ cursor:pointer;
 margin-top:10px;
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .top-nav {
+    flex-direction: column;
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .hero {
+    flex-direction: column;
+    padding: 120px 20px 40px;
+    text-align: center;
+  }
+  
+  .hero-text h1 {
+    font-size: 48px;
+  }
+  
+  .buttons {
+    justify-content: center;
+  }
+  
+  .hero-box {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 40px;
+  }
+  
+  .card {
+    position: static;
+    width: 100%;
+  }
+  
+  .eco-grid, .about-stats, .about-features {
+    grid-template-columns: 1fr;
+  }
+  
+  .auth-container {
+    flex-direction: column;
+    width: 90%;
+    margin-top: 60px;
+    height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .left-panel, .right-panel {
+    padding: 30px 20px;
+  }
+  
+  .left-panel h1 {
+    font-size: 28px;
+  }
+}
 </style>
 </head>
 
