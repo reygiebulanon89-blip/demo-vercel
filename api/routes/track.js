@@ -56,9 +56,9 @@ router.get('/stats', authenticate, async (req, res) => {
       [req.user.id]
     );
     
-    // Get total waste quantity
+    // Get all waste entries to calculate precise CO2 savings
     const wasteResult = await db.query(
-      'SELECT COALESCE(SUM(quantity), 0) as total_waste FROM tracking WHERE user_id = $1',
+      'SELECT waste_type, quantity, unit FROM tracking WHERE user_id = $1',
       [req.user.id]
     );
     
@@ -79,9 +79,31 @@ router.get('/stats', authenticate, async (req, res) => {
       [req.user.id]
     );
     
-    // Calculate CO2 saved (rough estimate: 2.5kg CO2 per kg of food waste prevented)
-    const totalWaste = parseFloat(wasteResult.rows[0].total_waste) || 0;
-    const totalCO2Saved = totalWaste * 2.5;
+    // Calculate CO2 saved accurately based on type and unit
+    const unitConversion = { 'kg': 1, 'lbs': 0.453592, 'units': 0.1 };
+    const co2Factors = {
+      'food': 0.5,
+      'plastic': 2.5,
+      'paper': 0.3,
+      'metal': 8.0,
+      'glass': 0.5,
+      'general': 1.0
+    };
+
+    let totalWaste = 0;
+    let totalCO2Saved = 0;
+
+    for (const item of wasteResult.rows) {
+      const quantity = parseFloat(item.quantity) || 0;
+      const unit = item.unit || 'kg';
+      const wasteType = item.waste_type || 'general';
+      
+      totalWaste += quantity; // Raw sum to match previous total_waste behavior
+      
+      const kgAmount = quantity * (unitConversion[unit] || 1);
+      const factor = co2Factors[wasteType] || 1.0;
+      totalCO2Saved += kgAmount * factor;
+    }
     
     // Calculate current streak (consecutive days with entries in last 30 days)
     const daysResult = await db.query(
