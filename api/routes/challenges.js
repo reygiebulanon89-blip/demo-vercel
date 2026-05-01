@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 20;
     const offset = parseInt(req.query.offset) || 0;
-    const challenges = await db.query('SELECT * FROM challenges ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset]);
+    const challenges = await db.query('SELECT id, title, description, start_date, end_date, goal as target, \'units\' as target_unit, created_at FROM challenges ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset]);
     res.json({ status: 'success', data: challenges.rows });
   } catch (error) {
     console.error('Get challenges error:', error);
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
 // Get challenge by ID
 router.get('/:id', async (req, res) => {
   try {
-    const challenges = await db.query('SELECT * FROM challenges WHERE id = $1', [req.params.id]);
+    const challenges = await db.query('SELECT id, title, description, start_date, end_date, goal as target, \'units\' as target_unit, created_at FROM challenges WHERE id = $1', [req.params.id]);
     if (challenges.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'Challenge not found' });
     }
@@ -50,8 +50,8 @@ router.post('/', authenticate, async (req, res) => {
   try {
     const { title, description, target, target_unit, start_date, end_date } = req.body;
     const result = await db.query(
-      'INSERT INTO challenges (title, description, target, target_unit, start_date, end_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [title, description, target || 1, target_unit || 'units', start_date || null, end_date || null]
+      'INSERT INTO challenges (title, description, goal, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING id, title, description, start_date, end_date, goal as target, \'units\' as target_unit, created_at',
+      [title, description, target || 1, start_date || null, end_date || null]
     );
     res.status(201).json({ status: 'success', data: result.rows[0] });
   } catch (error) {
@@ -80,7 +80,7 @@ router.post('/:id/join', authenticate, async (req, res) => {
     }
 
     // Get challenge details
-    const challenge = await db.query('SELECT * FROM challenges WHERE id = $1', [req.params.id]);
+    const challenge = await db.query('SELECT id, title, description, start_date, end_date, goal as target, \'units\' as target_unit, created_at FROM challenges WHERE id = $1', [req.params.id]);
     if (challenge.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'Challenge not found' });
     }
@@ -145,7 +145,7 @@ router.get('/user/challenges', authenticate, async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
     
     const result = await db.query(
-      `SELECT cp.*, c.title, c.description, c.target, c.target_unit, c.start_date, c.end_date 
+      `SELECT cp.*, c.title, c.description, c.goal as target, 'units' as target_unit, c.start_date, c.end_date 
        FROM challenge_participants cp
        JOIN challenges c ON cp.challenge_id = c.id
        WHERE cp.user_id = $1
