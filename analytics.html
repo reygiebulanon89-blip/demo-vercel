@@ -1125,22 +1125,7 @@ function renderRange(range) {
 
   renderStats(series.values, breakdown, comparison);
 
-  const now = new Date();
-  let currentStart;
-  let previousStart;
-  let previousEnd;
-  if (range === 'week') {
-    currentStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
-    previousStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 13, 0, 0, 0, 0);
-    previousEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 23, 59, 59, 999);
-  } else {
-    currentStart = new Date(now.getFullYear(), now.getMonth() - 11, 1, 0, 0, 0, 0);
-    previousStart = new Date(now.getFullYear(), now.getMonth() - 23, 1, 0, 0, 0, 0);
-    previousEnd = new Date(now.getFullYear(), now.getMonth() - 11, 0, 23, 59, 59, 999);
-  }
-  const currentTotal = getWindowTotal(allLogs, currentStart, now);
-  const previousTotal = getWindowTotal(allLogs, previousStart, previousEnd);
-  const comparison = previousTotal > 0 ? ((currentTotal - previousTotal) / previousTotal) * 100 : 0;
+
   renderComparison(Number(comparison.toFixed(1)));
 }
 
