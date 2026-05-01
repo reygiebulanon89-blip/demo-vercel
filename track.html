@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WasteLess</title>
-  <!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="/logo.png">
+  <title>WasteLess - Track Waste</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.png">
   <script src="/api.service.js"></script>
   <style>
     * {
@@ -50,6 +48,7 @@
       flex-direction: column;
       gap: 28px;
       box-shadow: 15px 0 40px rgba(0, 0, 0, 0.08);
+      z-index: 100;
     }
 
     .brand {
@@ -60,6 +59,9 @@
       font-size: 30px;
       line-height: 1;
       margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .brand p {
@@ -164,163 +166,6 @@
     .title-block p {
       font-size: 14px;
       color: var(--text-700);
-    }
-
-    .status-pill {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: #fff;
-      border: 1px solid var(--line);
-      color: var(--green-800);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 0;
-      position: relative;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .status-pill:hover {
-      background: var(--green-50);
-      transform: translateY(-1px);
-    }
-
-    .status-pill svg {
-      width: 18px;
-      height: 18px;
-      stroke: currentColor;
-      stroke-width: 1.9;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .notif-count {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 5px;
-      border-radius: 999px;
-      background: #e53935;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      border: 2px solid #fff;
-    }
-
-    .notif-count.hidden {
-      display: none;
-    }
-
-    .notif-wrap {
-      position: relative;
-    }
-
-    .notif-panel {
-      position: absolute;
-      top: calc(100% + 10px);
-      right: 0;
-      width: min(360px, 85vw);
-      max-height: 440px;
-      overflow: auto;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12);
-      padding: 10px;
-      z-index: 20;
-      display: none;
-    }
-
-    .notif-panel.open {
-      display: block;
-    }
-
-    .notif-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 6px 8px 10px;
-      border-bottom: 1px solid var(--line);
-      margin-bottom: 8px;
-    }
-
-    .notif-head strong {
-      font-size: 14px;
-    }
-
-    .notif-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .notif-footer {
-      padding: 8px 6px 2px;
-      border-top: 1px solid var(--line);
-      margin-top: 8px;
-      text-align: right;
-    }
-
-    .notif-footer a {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--green-800);
-      text-decoration: none;
-    }
-
-    .notif-footer a:hover {
-      text-decoration: underline;
-    }
-
-    .notif-item {
-      position: relative;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px 34px 10px 10px;
-      font-size: 13px;
-      line-height: 1.4;
-      background: #fff;
-    }
-
-    .notif-item.unread {
-      background: #f6fbf7;
-      border-color: #cfe6d1;
-    }
-
-    .notif-time {
-      display: block;
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-700);
-    }
-
-    .notif-empty {
-      font-size: 13px;
-      color: var(--text-700);
-      padding: 10px 8px;
-      text-align: center;
-    }
-
-    .notif-delete {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      border: 0;
-      background: transparent;
-      color: #888;
-      font-size: 16px;
-      line-height: 1;
-      cursor: pointer;
-      padding: 2px;
     }
 
     .summary-grid {
@@ -431,6 +276,7 @@
       color: #2e7d32;
       text-decoration: none;
       cursor: pointer;
+      transition: background 0.2s ease;
     }
 
     .btn:hover {
@@ -441,6 +287,7 @@
       background: linear-gradient(135deg, #2e7d32, #43a047);
       border: none;
       color: #fff;
+      width: 100%;
     }
 
     .quick-buttons {
@@ -458,6 +305,7 @@
       font-weight: 600;
       color: #2e7d32;
       cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
 
     .quick-btn:hover,
@@ -513,6 +361,11 @@
       font-size: 12px;
       cursor: pointer;
       color: #2e7d32;
+      transition: background 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: var(--green-50);
     }
 
     .action-btn.delete {
@@ -520,10 +373,15 @@
       border-color: #f0d0d0;
     }
 
+    .action-btn.delete:hover {
+      background: #fdf0f0;
+    }
+
     .empty-state {
       padding: 14px 10px;
       font-size: 13px;
       color: #6b7a6d;
+      text-align: center;
     }
 
     @media (max-width: 1100px) {
@@ -574,9 +432,8 @@
   <div class="dashboard-shell">
     <aside class="sidebar">
       <div class="brand">
-        <h1 style="display:flex;align-items:center;gap:10px;">
-          <img src="logo.png" alt="WasteLess Logo"
-            style="height:34px;width:auto;display:inline-block;vertical-align:middle;">
+        <h1>
+          <img src="/logo.png" alt="WasteLess Logo" style="height:34px;width:auto;">
           <span>WasteLess</span>
         </h1>
         <p>Manage waste tracking, insights, and sustainable actions from one place.</p>
@@ -636,53 +493,31 @@
       <section class="content">
         <div class="topbar">
           <div class="title-block">
-            <h2>Track </h2>
+            <h2>Track Waste</h2>
             <p>Add your daily consumption in seconds. No exact measurement required.</p>
-          </div>
-          <div class="notif-wrap">
-            <button class="status-pill" id="notifBtn" type="button" aria-label="Notifications" title="Notifications"
-              aria-expanded="false">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 9a6 6 0 1 1 12 0v5l2 2H4l2-2z"></path>
-                <path d="M10 18a2 2 0 0 0 4 0"></path>
-              </svg>
-              <span class="notif-count hidden" id="notifCount">0</span>
-            </button>
-            <div class="notif-panel" id="notifPanel" aria-label="Notifications panel">
-              <div class="notif-head">
-                <strong>Notifications</strong>
-                <button class="action-btn" type="button" id="notifRefreshBtn">Refresh</button>
-              </div>
-              <div class="notif-list" id="notifList">
-                <div class="notif-empty">No notifications yet.</div>
-              </div>
-              <div class="notif-footer">
-                <a href="Feed.html">View all in Feed</a>
-              </div>
-            </div>
           </div>
         </div>
 
-        <section class="summary-grid" aria-label="Small summary">
+        <section class="summary-grid" aria-label="Daily summary">
           <article class="summary-card">
-            <h3>Today's Total Waste</h3>
+            <h3>Today's Total Entries</h3>
             <strong id="totalToday">0</strong>
           </article>
           <article class="summary-card">
-            <h3>Plastic Usage Today</h3>
-            <strong id="plasticToday">0</strong>
+            <h3>Total Quantity (kg)</h3>
+            <strong id="totalQuantity">0</strong>
           </article>
           <article class="summary-card">
-            <h3>Water Usage Today</h3>
-            <strong id="waterToday">0</strong>
+            <h3>CO₂ Saved Today</h3>
+            <strong id="co2Saved">0</strong>
           </article>
         </section>
 
         <section class="layout-grid">
           <article class="panel">
             <div class="panel-title">
-              <h3>Add Consumption</h3>
-              <span>Simple daily input</span>
+              <h3>Add Waste Entry</h3>
+              <span>Log your consumption</span>
             </div>
 
             <form id="consumptionForm">
@@ -690,6 +525,7 @@
                 <div class="field">
                   <label for="category">Category</label>
                   <select id="category" required>
+                    <option value="">-- Select Category --</option>
                     <option value="food">Food</option>
                     <option value="plastic">Plastic</option>
                     <option value="paper">Paper</option>
@@ -719,7 +555,7 @@
                 </div>
 
                 <div class="field full">
-                  <button class="btn primary" id="submitBtn" type="submit">Add Data</button>
+                  <button class="btn primary" id="submitBtn" type="submit">Add Entry</button>
                 </div>
               </div>
             </form>
@@ -729,15 +565,15 @@
 
           <article class="panel">
             <div class="panel-title">
-              <h3>Quick Category Selection</h3>
-              <span>Tap to auto-fill category</span>
+              <h3>Quick Select</h3>
+              <span>Auto-fill category</span>
             </div>
 
             <div class="quick-buttons" id="quickButtons">
-              <button class="quick-btn" type="button" data-category="food">Food</button>
-              <button class="quick-btn" type="button" data-category="plastic">Plastic</button>
-              <button class="quick-btn" type="button" data-category="paper">Paper</button>
-              <button class="quick-btn" type="button" data-category="general">General</button>
+              <button class="quick-btn" type="button" data-category="food">🍕 Food</button>
+              <button class="quick-btn" type="button" data-category="plastic">♻️ Plastic</button>
+              <button class="quick-btn" type="button" data-category="paper">📄 Paper</button>
+              <button class="quick-btn" type="button" data-category="general">🗑️ General</button>
             </div>
           </article>
         </section>
@@ -745,20 +581,25 @@
         <section class="panel">
           <div class="panel-title">
             <h3>Recent Entries</h3>
-            <span>Appears instantly after save</span>
+            <span>Your waste logs this week</span>
           </div>
 
           <table>
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Waste type</th>
+                <th>Category</th>
                 <th>Quantity</th>
-                <th>CO₂ saved</th>
+                <th>Unit</th>
+                <th>CO₂ Impact</th>
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="entriesBody"></tbody>
+            <tbody id="entriesBody">
+              <tr>
+                <td colspan="6" class="empty-state">No entries yet. Start tracking your waste!</td>
+              </tr>
+            </tbody>
           </table>
         </section>
       </section>
@@ -766,6 +607,7 @@
   </div>
 
   <script>
+    // DOM Elements
     const categoryField = document.getElementById('category');
     const quantityField = document.getElementById('quantity');
     const unitField = document.getElementById('unit');
@@ -775,42 +617,34 @@
     const messageBox = document.getElementById('formMessage');
     const entriesBody = document.getElementById('entriesBody');
     const quickButtons = document.getElementById('quickButtons');
-    const notifBtn = document.getElementById('notifBtn');
-    const notifPanel = document.getElementById('notifPanel');
-    const notifList = document.getElementById('notifList');
-    const notifCount = document.getElementById('notifCount');
-    const notifRefreshBtn = document.getElementById('notifRefreshBtn');
 
-    let notifications = [];
-    let unreadNotifications = 0;
-    let latestNotificationId = 0;
-    let notificationStream = null;
+    let trackingLogs = [];
 
+    // Helper Functions
     function setTodayDefault() {
       const today = new Date();
-      // Use local date parts, not UTC (toISOString), to avoid off-by-one day.
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
       dateField.value = `${year}-${month}-${day}`;
     }
 
-    function showMessage(text) {
+    function showMessage(text, duration = 2200) {
       messageBox.textContent = text;
       messageBox.classList.add('show');
-      setTimeout(() => messageBox.classList.remove('show'), 2200);
+      setTimeout(() => messageBox.classList.remove('show'), duration);
     }
 
-    function formatDateTime(isoDateTime) {
-      const date = new Date(isoDateTime);
-      return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
     function titleCase(value) {
       return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
-    function formatNumber(value, decimals = 0) {
+    function formatNumber(value, decimals = 2) {
       const n = Number(value);
       if (!Number.isFinite(n)) return '0';
       return n.toLocaleString(undefined, { maximumFractionDigits: decimals });
@@ -825,115 +659,21 @@
         .replaceAll("'", '&#039;');
     }
 
-    function formatRelativeTime(isoValue) {
-      const ms = new Date(isoValue).getTime();
-      if (!Number.isFinite(ms)) return '';
-      const diff = Date.now() - ms;
-      const min = Math.floor(diff / 60000);
-      if (min < 1) return 'just now';
-      if (min < 60) return `${min}m ago`;
-      const hrs = Math.floor(min / 60);
-      if (hrs < 24) return `${hrs}h ago`;
-      const days = Math.floor(hrs / 24);
-      if (days < 7) return `${days}d ago`;
-      return new Date(ms).toLocaleDateString();
-    }
-
-    function renderNotifications() {
-      notifCount.textContent = String(unreadNotifications);
-      notifCount.classList.toggle('hidden', unreadNotifications < 1);
-
-      if (!notifications.length) {
-        notifList.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
-        return;
-      }
-
-      notifList.innerHTML = notifications.slice(0, 30).map((n) => {
-        const actor = escapeHtml(n.actor_username || n.actor_name || '');
-        const msg = escapeHtml(n.message || n.text || 'You have a new notification');
-        const text = actor ? `<strong>${actor}</strong> ${msg}` : msg;
-        const unreadClass = Number(n.is_read || 0) === 1 ? '' : ' unread';
-        return `
-<div class="notif-item${unreadClass}">
-<button class="notif-delete" type="button" data-delete-notification="${n.id}" aria-label="Delete notification">×</button>
-${text}
-<span class="notif-time">${formatRelativeTime(n.created_at)}</span>
-</div>
-`;
-      }).join('');
-    }
-
-    async function loadNotifications(afterId = 0) {
-      try {
-        const response = await api.getNotifications(30, afterId);
-        const items = Array.isArray(response.data) ? response.data : [];
-        if (afterId === 0) {
-          notifications = items;
-        } else if (items.length) {
-          const existing = new Set(notifications.map((x) => Number(x.id)));
-          items.forEach((item) => {
-            if (!existing.has(Number(item.id))) notifications.unshift(item);
-          });
-          notifications.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-        }
-
-        notifications.forEach((item) => {
-          if (Number(item.id || 0) > latestNotificationId) latestNotificationId = Number(item.id || 0);
-        });
-        unreadNotifications = notifications.filter((x) => Number(x.is_read || 0) !== 1).length;
-        renderNotifications();
-      } catch (error) {
-        console.error('Failed to load notifications', error);
-      }
-    }
-
-    function markNotificationsRead() {
-      if (unreadNotifications < 1) return;
-      unreadNotifications = 0;
-      notifications = notifications.map((n) => ({ ...n, is_read: 1 }));
-      renderNotifications();
-      api.markNotificationsRead().catch((error) => {
-        console.error('Failed to mark notifications read', error);
-      });
-    }
-
-    function toggleNotifications(forceOpen = null) {
-      const shouldOpen = forceOpen === null ? !notifPanel.classList.contains('open') : Boolean(forceOpen);
-      notifPanel.classList.toggle('open', shouldOpen);
-      notifBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
-      if (shouldOpen) markNotificationsRead();
-    }
-
-    function startNotificationStream() {
-      const streamUrl = api.getNotificationsStreamUrl(latestNotificationId);
-      if (!streamUrl || typeof EventSource === 'undefined') return;
-      if (notificationStream) notificationStream.close();
-
-      notificationStream = new EventSource(streamUrl);
-      notificationStream.addEventListener('notifications', (event) => {
-        try {
-          const payload = JSON.parse(event.data || '{}');
-          const items = Array.isArray(payload.notifications) ? payload.notifications : [];
-          if (!items.length) return;
-          items.forEach((item) => {
-            if (!notifications.some((n) => Number(n.id) === Number(item.id))) {
-              notifications.unshift(item);
-              if (Number(item.id || 0) > latestNotificationId) latestNotificationId = Number(item.id || 0);
-              if (!notifPanel.classList.contains('open') && Number(item.is_read || 0) !== 1) unreadNotifications += 1;
-            }
-          });
-          notifications.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-          renderNotifications();
-        } catch (e) {
-          console.error('Notification stream parse error', e);
-        }
-      });
-      notificationStream.onerror = () => {
-        if (notificationStream) {
-          notificationStream.close();
-          notificationStream = null;
-        }
+    // CO2 Calculation (estimates)
+    function calculateCO2Impact(wasteType, quantity, unit) {
+      const unitConversion = { 'kg': 1, 'lbs': 0.453592, 'units': 0.1 };
+      const kgAmount = quantity * (unitConversion[unit] || 1);
+      
+      const co2Factors = {
+        'food': 0.5,
+        'plastic': 2.5,
+        'paper': 0.3,
+        'metal': 8.0,
+        'glass': 0.5,
+        'general': 1.0
       };
+      
+      return (kgAmount * (co2Factors[wasteType] || 1)).toFixed(2);
     }
 
     function todayISO() {
@@ -946,24 +686,86 @@ ${text}
 
     function updateSummary() {
       const today = todayISO();
-      const todayLogs = logs.filter((l) => (l.created_at || '').slice(0, 10) === today);
+      const todayLogs = trackingLogs.filter((l) => (l.created_at || '').slice(0, 10) === today);
+      
       const totalToday = todayLogs.length;
-      const plasticToday = todayLogs.filter((l) => l.waste_type === 'plastic').length;
-      // Keep the existing card but use "general" as a proxy since water isn't a backend type.
-      const generalToday = todayLogs.filter((l) => l.waste_type === 'general').length;
+      const totalQuantity = todayLogs.reduce((sum, log) => sum + (Number(log.quantity) || 0), 0);
+      const co2Saved = todayLogs.reduce((sum, log) => {
+        const co2 = calculateCO2Impact(log.waste_type, log.quantity, log.unit);
+        return sum + Number(co2);
+      }, 0);
 
       document.getElementById('totalToday').textContent = String(totalToday);
-      document.getElementById('plasticToday').textContent = String(plasticToday);
-      document.getElementById('waterToday').textContent = String(generalToday);
+      document.getElementById('totalQuantity').textContent = formatNumber(totalQuantity);
+      document.getElementById('co2Saved').textContent = formatNumber(co2Saved);
+    }
+
+    function renderEntries() {
+      if (trackingLogs.length === 0) {
+        entriesBody.innerHTML = '<tr><td colspan="6" class="empty-state">No entries yet. Start tracking your waste!</td></tr>';
+        return;
+      }
+
+      // Get entries from the past 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const recentLogs = trackingLogs.filter(log => {
+        const logDate = new Date(log.created_at);
+        return logDate >= sevenDaysAgo;
+      }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      entriesBody.innerHTML = recentLogs.map(log => {
+        const co2 = calculateCO2Impact(log.waste_type, log.quantity, log.unit);
+        return `
+          <tr>
+            <td>${formatDate(log.created_at)}</td>
+            <td>${titleCase(log.waste_type)}</td>
+            <td>${formatNumber(log.quantity)}</td>
+            <td>${log.unit}</td>
+            <td>${co2} kg CO₂</td>
+            <td class="actions">
+              <button class="action-btn delete" onclick="deleteEntry(${log.id})" type="button">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadTrackingLogs() {
+      try {
+        const response = await api.getTrackingLogs(100, 0);
+        trackingLogs = response.data || [];
+        updateSummary();
+        renderEntries();
+      } catch (error) {
+        console.error('Error loading tracking logs:', error);
+        showMessage('Error loading logs');
+      }
+    }
+
+    async function deleteEntry(logId) {
+      if (!confirm('Are you sure you want to delete this entry?')) return;
+
+      try {
+        await api.deleteLog(logId);
+        trackingLogs = trackingLogs.filter(log => log.id !== logId);
+        showMessage('Entry deleted successfully!');
+        updateSummary();
+        renderEntries();
+      } catch (error) {
+        console.error('Error deleting entry:', error);
+        showMessage('Error deleting entry');
+      }
     }
 
     function clearForm() {
       form.reset();
       setTodayDefault();
-      submitBtn.textContent = 'Add Data';
+      submitBtn.textContent = 'Add Entry';
     }
 
-    // Authentication check
+    // Authentication Check
     if (!api.isAuthenticated()) {
       window.location.href = 'index.html';
     }
@@ -973,6 +775,7 @@ ${text}
       window.location.href = 'index.html';
     }
 
+    // Event Listeners
     categoryField.addEventListener('change', () => {
       Array.from(quickButtons.querySelectorAll('.quick-btn')).forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.category === categoryField.value);
@@ -981,14 +784,13 @@ ${text}
 
     quickButtons.addEventListener('click', (event) => {
       const button = event.target.closest('.quick-btn');
-      if (!button) {
-        return;
-      }
+      if (!button) return;
 
       categoryField.value = button.dataset.category;
       Array.from(quickButtons.querySelectorAll('.quick-btn')).forEach((btn) => {
         btn.classList.toggle('active', btn === button);
       });
+      quantityField.focus();
     });
 
     form.addEventListener('submit', async (event) => {
@@ -997,10 +799,9 @@ ${text}
       const wasteType = categoryField.value;
       const quantity = Number(quantityField.value);
       const unit = unitField.value;
-      const date = dateField.value; // currently only used for UI validation (backend uses NOW())
 
-      if (!wasteType || !unit || !date || !Number.isFinite(quantity) || quantity <= 0) {
-        showMessage('Please choose a waste type and enter a valid quantity');
+      if (!wasteType || !unit || !Number.isFinite(quantity) || quantity <= 0) {
+        showMessage('Please fill all fields with valid values');
         return;
       }
 
@@ -1008,134 +809,22 @@ ${text}
       submitBtn.textContent = 'Saving...';
 
       try {
-        await api.logWaste(wasteType, quantity, unit, date);
-        showMessage('Entry saved successfully!');
-        await loadLogs();
+        await api.logWaste(wasteType, quantity, unit);
+        showMessage('✓ Waste entry logged successfully!');
         clearForm();
+        await loadTrackingLogs();
       } catch (error) {
-        showMessage('Error: ' + error.message);
-        console.error(error);
+        console.error('Error submitting waste log:', error);
+        showMessage('Error saving entry. Please try again.');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Add Data';
+        submitBtn.textContent = 'Add Entry';
       }
     });
 
-    entriesBody.addEventListener('click', async (event) => {
-      const button = event.target.closest('button[data-action]');
-      if (!button) return;
-
-      const logId = button.dataset.id;
-      if (!logId) return;
-
-      if (button.dataset.action === 'delete') {
-        if (!confirm('Are you sure you want to delete this entry?')) return;
-        try {
-          await api.deleteLog(logId);
-          logs = logs.filter((l) => String(l.id) !== String(logId));
-          renderLogs();
-          updateSummary();
-          showMessage('Entry deleted successfully');
-        } catch (error) {
-          showMessage('Error: ' + error.message);
-        }
-      }
-    });
-
-    notifBtn.addEventListener('click', async (event) => {
-      event.stopPropagation();
-      const willOpen = !notifPanel.classList.contains('open');
-      toggleNotifications(willOpen);
-      if (willOpen && notifications.length === 0) {
-        await loadNotifications(0);
-      }
-    });
-
-    notifRefreshBtn.addEventListener('click', async () => {
-      await loadNotifications(0);
-    });
-
-    notifList.addEventListener('click', async (event) => {
-      const delBtn = event.target.closest('[data-delete-notification]');
-      if (!delBtn) return;
-      const id = Number(delBtn.dataset.deleteNotification || 0);
-      if (!id) return;
-
-      const removed = notifications.find((n) => Number(n.id) === id);
-      notifications = notifications.filter((n) => Number(n.id) !== id);
-      if (removed && Number(removed.is_read || 0) !== 1) {
-        unreadNotifications = Math.max(0, unreadNotifications - 1);
-      }
-      renderNotifications();
-
-      try {
-        await api.deleteNotification(id);
-      } catch (error) {
-        console.error('Delete notification failed', error);
-        await loadNotifications(0);
-      }
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!notifPanel.classList.contains('open')) return;
-      if (event.target.closest('.notif-wrap')) return;
-      toggleNotifications(false);
-    });
-
-    let logs = [];
-
-    function renderLogs() {
-      entriesBody.innerHTML = '';
-
-      if (!logs.length) {
-        const row = document.createElement('tr');
-        row.innerHTML = '<td colspan="5" class="empty-state">No entries yet. Add your first data above.</td>';
-        entriesBody.appendChild(row);
-        return;
-      }
-
-      logs.forEach((log) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-<td>${formatDateTime(log.created_at)}</td>
-<td>${titleCase(String(log.waste_type || ''))}</td>
-<td>${formatNumber(log.quantity || 0, 2)} ${String(log.unit || '')}</td>
-<td>${formatNumber(log.co2_saved || 0, 2)} kg</td>
-<td>
-<div class="actions">
-<button class="action-btn delete" data-action="delete" data-id="${log.id}" type="button">Delete</button>
-</div>
-</td>
-`;
-        entriesBody.appendChild(row);
-      });
-    }
-
-    // Load logs on page load
-    async function loadLogs() {
-      try {
-        const response = await api.getTrackingLogs(50, 0);
-        if (response.data) {
-          logs = response.data;
-          renderLogs();
-          updateSummary();
-        }
-      } catch (error) {
-        console.log('Note: Could not load entries from API');
-        renderLogs();
-        updateSummary();
-      }
-    }
-
+    // Initialize
     setTodayDefault();
-    clearForm();
-    loadLogs();
-    loadNotifications(0).then(() => startNotificationStream());
-
-    window.addEventListener('beforeunload', () => {
-      if (notificationStream) notificationStream.close();
-    });
+    loadTrackingLogs();
   </script>
 </body>
-
 </html>

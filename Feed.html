@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WasteLess</title>
+<title>WasteLess - Community Feed</title>
 <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="/logo.png">
 <script src="/api.service.js"></script>
@@ -296,17 +296,6 @@ text-align: center;
 .notif-icon {
 margin-right: 6px;
 font-size: 14px;
-}
-
-.notif-item {
-padding: 10px;
-border: 1px solid #edf3ee;
-background: #f9fcfa;
-border-radius: 10px;
-font-size: 13px;
-color: #344a37;
-margin-bottom: 8px;
-position: relative;
 }
 
 .notif-item.unread {
@@ -831,12 +820,12 @@ white-space: normal;
 <script>
 // Authentication check
 if (!api.isAuthenticated()) {
-window.location.href = 'index.html';
+	window.location.href = 'index.html';
 }
 
 function handleLogout() {
-api.logout();
-window.location.href = 'index.html';
+	api.logout();
+	window.location.href = 'index.html';
 }
 
 const feedEl = document.getElementById('feed');
@@ -848,1057 +837,175 @@ const notifBellBtn = document.getElementById('notifBellBtn');
 const notifDot = document.getElementById('notifDot');
 const notifPanel = document.getElementById('notifPanel');
 const notifList = document.getElementById('notifList');
-const BADGE_SHARE_STORAGE_KEY = 'badgeToShare';
-const BADGE_SHARE_CONSUMED_KEY = 'wastelessLastSharedBadgeTimestamp';
 
 let posts = [];
 let currentUser = null;
 let notifications = [];
 let unreadNotifications = 0;
-let latestNotificationId = 0;
-let notificationStream = null;
-let notificationStreamRetryTimer = null;
-let interactionSyncTimer = null;
-const replyDraftByPostId = new Map();
-const collapsedThreadByCommentId = new Map();
-const COMMENT_EMOJIS = ['😀', '😍', '👏', '🔥', '🌱', '💚', '🎉', '🙌', '😂', '🤩', '🙏', '✨'];
-const MAX_REPLY_DEPTH = 2;
-const postInteractionBaseline = new Map();
-let notificationPollTimer = null;
-let currentUserId = null;
-const debugEnabled = new URLSearchParams(window.location.search).get('debugNotif') === 'true';
-let debugState = {
-lastPollAt: null,
-trackedPosts: [],
-lastEvent: 'none',
-lastError: 'none'
-};
 
 function showStatus(text) {
-composerStatus.textContent = text;
-setTimeout(() => {
-if (composerStatus.textContent === text) composerStatus.textContent = '';
-}, 2200);
+	composerStatus.textContent = text;
+	setTimeout(() => {
+		if (composerStatus.textContent === text) composerStatus.textContent = '';
+	}, 2200);
 }
 
 function escapeHtml(text) {
-return text.replace(/[&<>"]/g, (char) => ({
-'&': '&amp;',
-'<': '&lt;',
-'>': '&gt;',
-'"': '&quot;'
-}[char]));
+	return text.replace(/[&<>"]/g, (char) => ({
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;',
+		'"': '&quot;'
+	}[char]));
 }
 
 function timeAgo(timestamp) {
-const now = new Date();
-const time = new Date(timestamp);
-const diffMs = now - time;
-const diffMins = Math.floor(diffMs / 60000);
-const diffHours = Math.floor(diffMs / 3600000);
-const diffDays = Math.floor(diffMs / 86400000);
+	const now = new Date();
+	const time = new Date(timestamp);
+	const diffMs = now - time;
+	const diffMins = Math.floor(diffMs / 60000);
+	const diffHours = Math.floor(diffMs / 3600000);
+	const diffDays = Math.floor(diffMs / 86400000);
 
-if (diffMins < 1) return 'just now';
-if (diffMins < 60) return `${diffMins}m ago`;
-if (diffHours < 24) return `${diffHours}h ago`;
-if (diffDays < 7) return `${diffDays}d ago`;
-return time.toLocaleDateString();
+	if (diffMins < 1) return 'just now';
+	if (diffMins < 60) return `${diffMins}m ago`;
+	if (diffHours < 24) return `${diffHours}h ago`;
+	if (diffDays < 7) return `${diffDays}d ago`;
+	return time.toLocaleDateString();
 }
 
-function formatClockTime(timestamp) {
-const time = new Date(timestamp);
-return `${time.toLocaleDateString()} ${time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-}
-
-function getPostLikeCount(post) {
-if (typeof post.like_count === 'number') return post.like_count;
-if (typeof post.likes_count === 'number') return post.likes_count;
-if (typeof post.likes === 'number') return post.likes;
-return 0;
-}
-
-function setPostLikeCount(post, nextCount) {
-post.like_count = Math.max(0, Number(nextCount) || 0);
-post.likes_count = post.like_count;
-}
-
-function getPostCommentCount(post) {
-if (typeof post.comment_count === 'number') return post.comment_count;
-if (typeof post.comments_count === 'number') return post.comments_count;
-if (typeof post.comments === 'number') return post.comments;
-if (Array.isArray(post.comments)) return post.comments.length;
-return 0;
-}
-
-function setPostCommentCount(post, nextCount) {
-post.comment_count = Math.max(0, Number(nextCount) || 0);
-post.comments_count = post.comment_count;
-}
-
-function getPostLikedByUser(post) {
-if (typeof post.liked_by_user === 'boolean') return post.liked_by_user;
-if (typeof post.liked_by_user === 'number') return post.liked_by_user === 1;
-if (typeof post.is_liked === 'boolean') return post.is_liked;
-if (typeof post.user_liked === 'boolean') return post.user_liked;
-return false;
-}
-
-function setPostLikedByUser(post, liked) {
-post.liked_by_user = Boolean(liked);
-post.is_liked = Boolean(liked);
-post.user_liked = Boolean(liked);
-}
-
-function normalizeComment(comment) {
-return {
-id: Number(comment?.id || 0),
-userId: Number(comment?.user_id || comment?.author_id || 0),
-username: comment?.username || comment?.user_name || comment?.author || 'User',
-content: comment?.content || comment?.comment || comment?.text || '',
-parentCommentId: comment?.parent_comment_id ? Number(comment.parent_comment_id) : null,
-createdAt: comment?.created_at || comment?.createdAt || null
-};
-}
-
-function buildEmojiPickerHtml(postId) {
-return COMMENT_EMOJIS.map((emoji) => `<button class="emoji-option" type="button" data-emoji-value="${emoji}" data-emoji-post="${postId}">${emoji}</button>`).join('');
-}
-
-function getReplyDraft(postId) {
-return replyDraftByPostId.get(Number(postId)) || null;
-}
-
-function isThreadCollapsed(commentId) {
-if (!collapsedThreadByCommentId.has(commentId)) {
-collapsedThreadByCommentId.set(commentId, true);
-}
-return collapsedThreadByCommentId.get(commentId) === true;
-}
-
-function renderCommentThreadHtml(post) {
-const normalizedComments = (Array.isArray(post.comments) ? post.comments : [])
-.map(normalizeComment)
-.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
-
-if (normalizedComments.length === 0) {
-return '<div class="comment">No comments yet.</div>';
-}
-
-const byParent = new Map();
-normalizedComments.forEach((comment) => {
-const key = comment.parentCommentId || 0;
-if (!byParent.has(key)) byParent.set(key, []);
-byParent.get(key).push(comment);
-});
-
-const renderLevel = (parentId, depth, rootCommentId = null) => {
-const nodes = byParent.get(parentId) || [];
-return nodes.map((comment) => {
-const clampedDepth = Math.min(depth, 4);
-const indentStyle = clampedDepth > 0 ? ` style="margin-left:${clampedDepth * 16}px"` : '';
-const children = byParent.get(comment.id) || [];
-const hasChildren = children.length > 0;
-const collapsed = hasChildren ? isThreadCollapsed(comment.id) : false;
-const currentRootId = rootCommentId || comment.id;
-const parentForReply = depth >= MAX_REPLY_DEPTH ? currentRootId : comment.id;
-const depthNote = depth >= MAX_REPLY_DEPTH ? ` (max depth reached - replies stay under ${escapeHtml(comment.username)}'s main thread)` : '';
-const authorInitials = (comment.username || 'U').substring(0, 2).toUpperCase();
-return `
-<div class="comment${clampedDepth > 0 ? ' comment-reply' : ''}"${indentStyle}>
-<div><span class="comment-author"><span class="comment-author-avatar">${escapeHtml(authorInitials)}</span>${escapeHtml(comment.username)}</span> ${escapeHtml(comment.content)}</div>
-<div class="comment-meta">
-<span>${comment.createdAt ? formatClockTime(comment.createdAt) : ''}</span>
-<div>
-${hasChildren ? `<button class="action comment-reply-btn" type="button" data-toggle-thread="${comment.id}">${collapsed ? `Show replies (${children.length})` : 'Hide replies'}</button>` : ''}
-<button class="action comment-reply-btn" type="button" data-reply-post="${post.id}" data-reply-comment="${parentForReply}" data-reply-username="${escapeHtml(comment.username)}" data-reply-depth="${depth}" data-reply-root="${currentRootId}" data-reply-note="${escapeHtml(depthNote)}">↩ Reply</button>
-${comment.userId && Number(currentUserId) === Number(comment.userId) ? `
-<span class="comment-own-actions">
-<button class="action" type="button" data-edit-comment="${comment.id}" data-edit-post="${post.id}">Edit</button>
-<button class="action" type="button" data-delete-comment="${comment.id}" data-delete-post="${post.id}">Delete</button>
-</span>
-` : ''}
-</div>
-</div>
-</div>
-${hasChildren && collapsed ? '' : renderLevel(comment.id, depth + 1, currentRootId)}
-`;
-}).join('');
-};
-
-return renderLevel(0, 0);
-}
-
-function renderCommentComposerHtml(postId) {
-const draft = getReplyDraft(postId);
-return `
-${draft ? `<div class="replying-banner">Replying to <strong>${escapeHtml(draft.username)}</strong>${draft.note ? `<span>${escapeHtml(draft.note)}</span>` : ''}<button class="action" type="button" data-cancel-reply="${postId}">Cancel</button></div>` : ''}
-<div class="comment-form">
-<input type="text" placeholder="${draft ? `Reply to ${draft.username}...` : 'Write a comment...'}" data-comment-input="${postId}">
-<button class="btn emoji-btn" type="button" data-emoji-toggle="${postId}" aria-label="Add emoji">😊</button>
-<div class="emoji-picker" data-emoji-picker="${postId}">
-${buildEmojiPickerHtml(postId)}
-</div>
-<button class="btn" type="button" data-comment-post="${postId}">${draft ? 'Reply' : 'Post'}</button>
-</div>
-`;
-}
-
-function isOwnPost(post) {
-if (!currentUser) return false;
-const currentId = Number(currentUserId || currentUser.id || currentUser.user_id || 0);
-const postOwnerId = Number(post.user_id || post.author_id || post.owner_id || 0);
-if (currentId && postOwnerId && currentId === postOwnerId) return true;
-if (currentUser.username && post.username) return currentUser.username === post.username;
-return false;
-}
-
-function renderNotifications() {
-notifDot.textContent = String(unreadNotifications);
-notifDot.classList.toggle('hidden', unreadNotifications < 1);
-
-if (notifications.length === 0) {
-notifList.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
-return;
-}
-
-notifList.innerHTML = notifications.slice(0, 20).map((item) => {
-const typeClass = (item.type || '').toLowerCase();
-const typeLabel = typeClass === 'like' ? 'Like' : typeClass === 'comment' ? 'Comment' : typeClass === 'reply' ? 'Reply' : '';
-return `
-<div class="notif-item${item.is_read === false ? ' unread' : ''}">
-<button class="notif-delete" type="button" data-delete-notification="${item.id}" aria-label="Delete notification">×</button>
-${typeLabel ? `<span class="notif-type ${typeClass}">${typeLabel}</span>` : ''}
-${item.interactionIcon ? `<span class="notif-icon">${item.interactionIcon}</span>` : ''}
-${item.actorName
-? `<strong>${escapeHtml(item.actorName)}</strong> ${escapeHtml(item.actionText || '')}`
-: escapeHtml(item.text || item.message || '')}
-<span class="notif-time">${formatClockTime(item.timestamp)}</span>
-</div>
-`;
-}).join('');
-}
-
-function normalizeNotification(item) {
-const actorName = (item.actor_username || item.actor_name || '').trim();
-const type = (item.type || '').toLowerCase();
-let resolvedText = item.text || item.message || '';
-let actionText = '';
-let interactionIcon = '';
-
-// Determine interaction type and icon
-if (type === 'like' || (actorName && type !== 'comment' && type !== 'reply' && resolvedText.toLowerCase().includes('like'))) {
-interactionIcon = '❤️';
-actionText = 'liked your post.';
-resolvedText = `${actorName} ${actionText}`;
-} else if (type === 'comment' || resolvedText.toLowerCase().includes('comment')) {
-interactionIcon = '💬';
-const serverMessage = (item.message || '').trim();
-actionText = serverMessage || 'commented on your post.';
-resolvedText = `${actorName} ${actionText}`;
-} else if (type === 'reply' || resolvedText.toLowerCase().includes('reply')) {
-interactionIcon = '↩️';
-const serverMessage = (item.message || '').trim();
-actionText = serverMessage || 'replied to your comment.';
-resolvedText = `${actorName} ${actionText}`;
-} else if (actorName) {
-// Default: treat as a like if we have an actor name but unclear type
-interactionIcon = '❤️';
-actionText = 'interacted with your post.';
-resolvedText = `${actorName} ${actionText}`;
-} else {
-interactionIcon = '🔔';
-}
-
-return {
-id: Number(item.id || 0),
-text: resolvedText,
-actorName: actorName || '',
-actionText,
-interactionIcon: interactionIcon,
-type: type,
-timestamp: item.created_at ? new Date(item.created_at).getTime() : (item.timestamp || Date.now()),
-is_read: Number(item.is_read || 0) === 1
-};
-}
-
-function upsertNotifications(items, countUnread = false) {
-let unreadDelta = 0;
-items.forEach((raw) => {
-const item = normalizeNotification(raw);
-if (item.id > latestNotificationId) latestNotificationId = item.id;
-const exists = notifications.some((entry) => Number(entry.id) === Number(item.id));
-if (!exists) {
-notifications.unshift(item);
-if (countUnread && !item.is_read) unreadDelta += 1;
-}
-});
-
-if (unreadDelta > 0) unreadNotifications += unreadDelta;
-notifications.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-renderNotifications();
-}
-
-function pushNotification(text) {
-notifications.unshift({
-id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-text,
-timestamp: Date.now()
-});
-unreadNotifications += 1;
-debugState.lastEvent = text;
-renderNotifications();
-renderDebugPanel();
-}
-
-function markNotificationsRead() {
-unreadNotifications = 0;
-renderNotifications();
-api.markNotificationsRead().catch((error) => {
-console.error('Failed to mark notifications read', error);
-});
-}
-
-function setBaselineFromPosts(postList) {
-postList.forEach((post) => {
-if (!isOwnPost(post)) return;
-const existing = postInteractionBaseline.get(Number(post.id));
-if (existing) return;
-postInteractionBaseline.set(Number(post.id), {
-likes: getPostLikeCount(post),
-comments: getPostCommentCount(post)
-});
-});
-debugState.trackedPosts = Array.from(postInteractionBaseline.entries()).map(([postId, counts]) =>
-`#${postId} (L:${counts.likes}, C:${counts.comments})`
-);
-renderDebugPanel();
-}
-
-async function fetchMyPostsForNotifications() {
-if (!currentUserId) return [];
-
-try {
-const response = await api.getUserPosts(currentUserId, 50, 0);
-const myPosts = response.data || [];
-debugState.lastError = 'none';
-return Array.isArray(myPosts) ? myPosts : [];
-} catch (error) {
-console.error('Loading own posts for notifications failed', error);
-debugState.lastError = error.message || 'fetch own posts failed';
-renderDebugPanel();
-return [];
-}
-}
-
-function renderDebugPanel() {
-if (!debugEnabled) return;
-const panel = document.getElementById('notifDebugPanel');
-if (!panel) return;
-
-panel.classList.add('show');
-
-const userLine = document.getElementById('debugUserLine');
-const pollLine = document.getElementById('debugPollLine');
-const trackedLine = document.getElementById('debugTrackedLine');
-const eventLine = document.getElementById('debugLastEventLine');
-const errorLine = document.getElementById('debugErrorLine');
-
-if (userLine) {
-userLine.textContent = `User: ${currentUser?.username || 'unknown'} (id: ${currentUserId || '-'})`;
-}
-if (pollLine) {
-pollLine.textContent = `Last poll: ${debugState.lastPollAt ? formatClockTime(debugState.lastPollAt) : '-'}`;
-}
-if (trackedLine) {
-trackedLine.textContent = `Tracked posts: ${debugState.trackedPosts.length ? debugState.trackedPosts.join(', ') : 'none'}`;
-}
-if (eventLine) {
-eventLine.textContent = `Last event: ${debugState.lastEvent || 'none'}`;
-}
-if (errorLine) {
-errorLine.textContent = `Last error: ${debugState.lastError || 'none'}`;
-}
-}
-
-async function pollNotificationsOnce() {
-try {
-debugState.lastPollAt = Date.now();
-const response = await api.getNotifications(30, latestNotificationId);
-const items = Array.isArray(response.data) ? response.data : [];
-if (items.length > 0) {
-upsertNotifications(items, true);
-}
-debugState.lastError = 'none';
-renderDebugPanel();
-} catch (error) {
-console.error('Notification polling failed', error);
-debugState.lastError = error.message || 'notification polling failed';
-renderDebugPanel();
-}
-}
-
-function startNotificationPolling() {
-if (notificationPollTimer) return;
-pollNotificationsOnce();
-notificationPollTimer = window.setInterval(pollNotificationsOnce, 5000);
-}
-
-function stopNotificationPolling() {
-if (!notificationPollTimer) return;
-window.clearInterval(notificationPollTimer);
-notificationPollTimer = null;
+// Fetch and display feed
+async function loadFeed() {
+	try {
+		const response = await api.getFeed();
+		posts = response.data || [];
+		renderFeed();
+	} catch (error) {
+		console.error('Error loading feed:', error);
+		showStatus('Error loading feed');
+	}
 }
 
 function renderFeed() {
-feedEl.innerHTML = '';
+	if (posts.length === 0) {
+		feedEl.innerHTML = '<div class="empty">No posts yet. Be the first to share!</div>';
+		return;
+	}
 
-if (posts.length === 0) {
-feedEl.innerHTML = '<div style="padding: 40px; text-align: center; color: #999;">No posts yet. Be the first to share!</div>';
-return;
+	feedEl.innerHTML = posts.map(post => `
+		<div class="post" data-post-id="${post.id}">
+			<div class="post-top">
+				<div>
+					<div class="name">${escapeHtml(post.author_name || post.username || 'User')}</div>
+					<div class="time">${timeAgo(post.created_at)}</div>
+				</div>
+			</div>
+			<div class="message">${escapeHtml(post.content)}</div>
+			<div class="actions">
+				<button class="action ${post.liked_by_user ? 'active' : ''}" onclick="handleLike(${post.id})">
+					👍 <span class="action-count">${post.like_count || 0}</span>
+				</button>
+				<button class="action" onclick="toggleComments(${post.id})">
+					💬 <span class="action-count">${post.comment_count || 0}</span>
+				</button>
+			</div>
+			<div class="comments" id="comments-${post.id}">
+				<div class="comment-list" id="comment-list-${post.id}"></div>
+				<div class="comment-form">
+					<input type="text" placeholder="Add a comment..." maxlength="120" id="comment-input-${post.id}">
+					<button class="btn" onclick="handleComment(${post.id})">Reply</button>
+				</div>
+			</div>
+		</div>
+	`).join('');
 }
 
-posts.forEach((post) => {
-const postEl = document.createElement('article');
-const isBadgePost = Boolean(post.badge_name && post.badge_icon);
-postEl.className = isBadgePost ? 'post badge-post' : 'post';
+// Handle post creation
+postBtn.addEventListener('click', async () => {
+	const content = postInput.value.trim();
+	if (!content) {
+		showStatus('Please enter some text');
+		return;
+	}
 
-const comments = Array.isArray(post.comments) ? post.comments : [];
-const likeCount = getPostLikeCount(post);
-const commentsCount = getPostCommentCount(post);
-const ownPost = isOwnPost(post);
-const likedByUser = getPostLikedByUser(post);
-const commentThreadHtml = renderCommentThreadHtml(post);
-const composerHtml = renderCommentComposerHtml(post.id);
+	postBtn.disabled = true;
+	postBtn.textContent = 'Posting...';
 
-if (isBadgePost) {
-postEl.innerHTML = `
-<div class="post-top" style="width: 100%;">
-<div class="name">${escapeHtml(post.username || 'User')}</div>
-<div class="time">${timeAgo(post.created_at)}</div>
-</div>
-<div class="badge-display">
-<div class="badge-icon-large">${escapeHtml(post.badge_icon)}</div>
-<div class="badge-name-post">${escapeHtml(post.badge_name)}</div>
-<div class="badge-subtitle">Unlocked a new eco achievement</div>
-</div>
-<div class="actions">
-<button class="action ${likedByUser ? 'active' : ''}" data-action="like" data-id="${post.id}">${likedByUser ? '💚 Unlike' : '👍 Like'} (${likeCount})</button>
-<button class="action" data-action="comment" data-id="${post.id}">💬 Comment (${commentsCount})</button>
-${ownPost ? `<button class="action" data-action="delete" data-id="${post.id}">🗑 Delete</button>` : ''}
-</div>
-<div class="comments" data-comments="${post.id}">
-<div class="comment-list">${
-commentThreadHtml
-}</div>
-${composerHtml}
-</div>
-`;
-feedEl.appendChild(postEl);
-return;
-}
-
-postEl.innerHTML = `
-<div class="post-top">
-<div>
-<div class="name">${escapeHtml(post.username || 'User')}</div>
-<div class="message">${escapeHtml(post.content)}</div>
-</div>
-<div class="time">${timeAgo(post.created_at)}</div>
-</div>
-<div class="actions">
-<button class="action ${likedByUser ? 'active' : ''}" data-action="like" data-id="${post.id}">${likedByUser ? '💚 Unlike' : '👍 Like'} (${likeCount})</button>
-<button class="action" data-action="comment" data-id="${post.id}">💬 Comment (${commentsCount})</button>
-${ownPost ? `<button class="action" data-action="delete" data-id="${post.id}">🗑 Delete</button>` : ''}
-</div>
-<div class="comments" data-comments="${post.id}">
-<div class="comment-list">${
-commentThreadHtml
-}</div>
-${composerHtml}
-</div>
-`;
-feedEl.appendChild(postEl);
-});
-}
-
-function createLocalBadgePost(badgeData, options = {}) {
-const fallbackUser = currentUser?.username || 'You';
-const now = new Date().toISOString();
-const localId = options.localId || Number(`9${Date.now().toString().slice(-10)}`);
-
-const post = {
-id: localId,
-username: fallbackUser,
-content: `I just earned the "${badgeData.name}" badge!`,
-badge_name: badgeData.name,
-badge_icon: badgeData.icon,
-created_at: now,
-like_count: 0,
-comment_count: 0,
-comments: [],
-__optimisticBadgeShare: Boolean(options.optimistic)
-};
-
-posts.unshift(post);
-
-renderFeed();
-return post;
-}
-
-function replacePostById(postId, replacementPost) {
-const index = posts.findIndex((item) => Number(item.id) === Number(postId));
-if (index === -1) return false;
-posts[index] = replacementPost;
-return true;
-}
-
-function getOpenCommentPostIds() {
-return Array.from(feedEl.querySelectorAll('.comments.open'))
-.map((el) => Number(el.dataset.comments))
-.filter((id) => Number.isFinite(id) && id > 0);
-}
-
-function restoreOpenCommentPostIds(openIds) {
-openIds.forEach((postId) => {
-const commentsDiv = feedEl.querySelector(`[data-comments="${postId}"]`);
-if (commentsDiv) commentsDiv.classList.add('open');
-});
-}
-
-function mergeInteractionStateIntoPosts(latestPosts) {
-if (!Array.isArray(latestPosts) || latestPosts.length === 0) return false;
-
-const latestById = new Map(latestPosts.map((item) => [Number(item.id), item]));
-let changed = false;
-
-posts.forEach((post) => {
-const serverPost = latestById.get(Number(post.id));
-if (!serverPost) return;
-
-const nextLikeCount = Number(serverPost.likes || serverPost.like_count || 0);
-const nextCommentCount = Number(serverPost.comments || serverPost.comment_count || 0);
-const nextLikedByUser = Number(serverPost.liked_by_user || 0) === 1;
-
-if (getPostLikeCount(post) !== nextLikeCount) {
-setPostLikeCount(post, nextLikeCount);
-changed = true;
-}
-
-if (getPostCommentCount(post) !== nextCommentCount) {
-setPostCommentCount(post, nextCommentCount);
-changed = true;
-}
-
-if (getPostLikedByUser(post) !== nextLikedByUser) {
-setPostLikedByUser(post, nextLikedByUser);
-changed = true;
-}
+	try {
+		await api.createPost(content);
+		postInput.value = '';
+		showStatus('Post created successfully!');
+		loadFeed();
+	} catch (error) {
+		showStatus('Error creating post');
+		console.error(error);
+	} finally {
+		postBtn.disabled = false;
+		postBtn.textContent = 'Post';
+	}
 });
 
-return changed;
+// Handle like
+async function handleLike(postId) {
+	try {
+		const post = posts.find(p => p.id === postId);
+		if (!post) return;
+
+		if (post.liked_by_user) {
+			await api.unlikePost(postId);
+			post.liked_by_user = false;
+			post.like_count = Math.max(0, (post.like_count || 1) - 1);
+		} else {
+			await api.likePost(postId);
+			post.liked_by_user = true;
+			post.like_count = (post.like_count || 0) + 1;
+		}
+		renderFeed();
+	} catch (error) {
+		showStatus('Error updating like');
+		console.error(error);
+	}
 }
 
-async function syncFeedInteractions() {
-if (!currentUserId) return;
-
-try {
-const response = await api.getFeed(50, 0);
-const latestPosts = Array.isArray(response.data) ? response.data : [];
-const openCommentIds = getOpenCommentPostIds();
-const changed = mergeInteractionStateIntoPosts(latestPosts);
-
-if (changed) {
-renderFeed();
-restoreOpenCommentPostIds(openCommentIds);
-}
-} catch (error) {
-console.error('Live interaction sync failed', error);
-}
+// Toggle comments
+function toggleComments(postId) {
+	const commentsEl = document.getElementById(`comments-${postId}`);
+	if (commentsEl) {
+		commentsEl.classList.toggle('open');
+	}
 }
 
-function startLiveInteractionSync() {
-if (interactionSyncTimer) return;
-syncFeedInteractions();
-interactionSyncTimer = window.setInterval(syncFeedInteractions, 2500);
+// Handle comment
+async function handleComment(postId) {
+	const inputEl = document.getElementById(`comment-input-${postId}`);
+	const content = inputEl.value.trim();
+	if (!content) {
+		showStatus('Please enter a comment');
+		return;
+	}
+
+	try {
+		await api.createComment(postId, content);
+		inputEl.value = '';
+		loadFeed();
+		showStatus('Comment added!');
+	} catch (error) {
+		showStatus('Error adding comment');
+		console.error(error);
+	}
 }
 
-async function handleBadgeShareFromChallenges() {
-const params = new URLSearchParams(window.location.search);
-const shouldShareBadge = params.get('shareBadge') === 'true';
-if (!shouldShareBadge) return;
-
-const rawBadge = localStorage.getItem(BADGE_SHARE_STORAGE_KEY);
-if (!rawBadge) return;
-
-let badgeData = null;
-try {
-badgeData = JSON.parse(rawBadge);
-} catch (error) {
-console.error('Invalid badge data', error);
-return;
-}
-
-if (!badgeData || !badgeData.name || !badgeData.icon || !badgeData.timestamp) return;
-
-const lastConsumed = Number(localStorage.getItem(BADGE_SHARE_CONSUMED_KEY) || 0);
-if (Number(badgeData.timestamp) <= lastConsumed) {
-const cleanUrl = `${window.location.pathname}`;
-window.history.replaceState({}, '', cleanUrl);
-return;
-}
-
-const tempPostId = Number(`9${Date.now().toString().slice(-10)}`);
-createLocalBadgePost(badgeData, { optimistic: true, localId: tempPostId });
-
-try {
-const response = await api.createPost(`🏅 I just earned the "${badgeData.name}" badge! ${badgeData.icon}`);
-const created = response.data || {};
-created.badge_name = badgeData.name;
-created.badge_icon = badgeData.icon;
-const replaced = replacePostById(tempPostId, created);
-if (!replaced) {
-posts.unshift(created);
-}
-showStatus('Badge shared to feed');
-} catch (error) {
-console.error('Badge share API failed, keeping local badge post', error);
-showStatus('Badge saved locally (sync failed)');
-}
-
-localStorage.setItem(BADGE_SHARE_CONSUMED_KEY, String(badgeData.timestamp));
-const cleanUrl = `${window.location.pathname}`;
-window.history.replaceState({}, '', cleanUrl);
-renderFeed();
-}
-
-async function loadFeed() {
-try {
-const optimisticPosts = posts.filter((item) => item.__optimisticBadgeShare);
-const response = await api.getFeed(50, 0);
-const loadedPosts = (response.data || []).map((item) => ({
-...item,
-likes: Number(item.likes || 0),
-comments: Number(item.comments || 0),
-liked_by_user: Number(item.liked_by_user || 0) === 1,
-comments_loaded: Array.isArray(item.comments),
-comments: Array.isArray(item.comments) ? item.comments : []
-}));
-posts = [...optimisticPosts, ...loadedPosts];
-setBaselineFromPosts(posts);
-renderFeed();
-} catch (error) {
-console.error('Error loading feed:', error);
-showStatus('Could not load feed');
-}
-}
-
-async function loadNotifications() {
-try {
-const response = await api.getNotifications(30, 0);
-const items = Array.isArray(response.data) ? response.data : [];
-notifications = [];
-latestNotificationId = 0;
-upsertNotifications(items, false);
-unreadNotifications = items.filter((item) => Number(item.is_read || 0) === 0).length;
-renderNotifications();
-} catch (error) {
-console.error('Failed to load notifications', error);
-}
-}
-
-function startNotificationStream() {
-if (notificationStream || !api.getNotificationsStreamUrl) return;
-const streamUrl = api.getNotificationsStreamUrl(latestNotificationId);
-if (!streamUrl || typeof EventSource === 'undefined') {
-startNotificationPolling();
-return;
-}
-
-notificationStream = new EventSource(streamUrl);
-
-notificationStream.onopen = () => {
-stopNotificationPolling();
-};
-
-notificationStream.addEventListener('notifications', (event) => {
-try {
-const items = JSON.parse(event.data);
-if (Array.isArray(items) && items.length > 0) {
-upsertNotifications(items, true);
-}
-} catch (error) {
-console.error('Invalid notification stream payload', error);
-}
-});
-
-notificationStream.onerror = () => {
-if (notificationStream) {
-notificationStream.close();
-notificationStream = null;
-}
-startNotificationPolling();
-if (!notificationStreamRetryTimer) {
-notificationStreamRetryTimer = window.setTimeout(() => {
-notificationStreamRetryTimer = null;
-startNotificationStream();
-}, 8000);
-}
-};
-}
-
-async function initializeCurrentUser() {
-const localUser = api.getUserData();
-if (localUser) {
-currentUser = localUser;
-currentUserId = Number(localUser.id || localUser.user_id || 0) || null;
-}
-
-if (currentUserId) return;
-
-try {
-const response = await api.getProfile();
-const profile = response.data || response.user || null;
-if (profile) {
-currentUser = profile;
-currentUserId = Number(profile.id || profile.user_id || 0) || null;
-api.setUserData(profile);
-}
-} catch (error) {
-console.error('Could not initialize user profile', error);
-}
-}
-
-async function addPost(message) {
-if (!message.trim()) {
-showStatus('Please write something');
-return;
-}
-
-postBtn.disabled = true;
-postBtn.textContent = 'Posting...';
-
-try {
-const response = await api.createPost(message);
-posts.unshift(response.data);
-renderFeed();
-showStatus('Posted successfully!');
-postInput.value = '';
-} catch (error) {
-showStatus('Error: ' + error.message);
-console.error(error);
-} finally {
-postBtn.disabled = false;
-postBtn.textContent = 'Post';
-}
-}
-
-postBtn.addEventListener('click', () => {
-const message = postInput.value.trim();
-if (message) addPost(message);
-});
-
-postInput.addEventListener('keypress', (e) => {
-if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-const message = postInput.value.trim();
-if (message) addPost(message);
-}
-});
-
-shareBtn.addEventListener('click', () => {
-postInput.value = 'Just reduced my waste today! Check out my sustainability progress. 🌱';
-postInput.focus();
-showStatus('Suggestion added to post field');
-});
-
-feedEl.addEventListener('click', async (event) => {
-const button = event.target.closest('button[data-action], button[data-comment-post], button[data-emoji-toggle], button[data-emoji-value], button[data-reply-comment], button[data-cancel-reply], button[data-toggle-thread], button[data-edit-comment], button[data-delete-comment]');
-if (!button) return;
-
-if (button.dataset.emojiToggle) {
-const postId = Number(button.dataset.emojiToggle);
-const picker = feedEl.querySelector(`[data-emoji-picker="${postId}"]`);
-if (!picker) return;
-const allPickers = feedEl.querySelectorAll('[data-emoji-picker]');
-allPickers.forEach((item) => {
-if (item !== picker) item.classList.remove('open');
-});
-picker.classList.toggle('open');
-return;
-}
-
-if (button.dataset.emojiValue) {
-const value = button.dataset.emojiValue;
-const form = button.closest('.comment-form');
-const input = form ? form.querySelector('[data-comment-input]') : null;
-if (!input) return;
-const start = input.selectionStart ?? input.value.length;
-const end = input.selectionEnd ?? input.value.length;
-const current = input.value;
-input.value = `${current.slice(0, start)}${value}${current.slice(end)}`;
-const nextCursor = start + value.length;
-input.setSelectionRange(nextCursor, nextCursor);
-input.focus();
-const picker = form.querySelector('[data-emoji-picker]');
-if (picker) picker.classList.remove('open');
-return;
-}
-
-if (button.dataset.toggleThread) {
-const commentId = Number(button.dataset.toggleThread || 0);
-if (!commentId) return;
-const current = isThreadCollapsed(commentId);
-collapsedThreadByCommentId.set(commentId, !current);
-const openPostIds = getOpenCommentPostIds();
-renderFeed();
-restoreOpenCommentPostIds(openPostIds);
-return;
-}
-
-if (button.dataset.replyComment) {
-const postId = Number(button.dataset.replyPost || 0);
-const commentId = Number(button.dataset.replyComment || 0);
-const username = (button.dataset.replyUsername || 'User').trim();
-const replyNote = (button.dataset.replyNote || '').trim();
-if (!postId || !commentId) return;
-replyDraftByPostId.set(postId, { commentId, username, note: replyNote });
-renderFeed();
-const commentsDiv = feedEl.querySelector(`[data-comments="${postId}"]`);
-if (commentsDiv) commentsDiv.classList.add('open');
-const input = feedEl.querySelector(`[data-comment-input="${postId}"]`);
-if (input) input.focus();
-return;
-}
-
-if (button.dataset.cancelReply) {
-const postId = Number(button.dataset.cancelReply || 0);
-if (!postId) return;
-replyDraftByPostId.delete(postId);
-renderFeed();
-const commentsDiv = feedEl.querySelector(`[data-comments="${postId}"]`);
-if (commentsDiv) commentsDiv.classList.add('open');
-return;
-}
-
-if (button.dataset.editComment) {
-const commentId = Number(button.dataset.editComment || 0);
-const postId = Number(button.dataset.editPost || 0);
-if (!commentId || !postId) return;
-const post = posts.find((p) => Number(p.id) === Number(postId));
-if (!post || !Array.isArray(post.comments)) return;
-const comment = post.comments.map(normalizeComment).find((c) => Number(c.id) === Number(commentId));
-if (!comment) return;
-
-const next = window.prompt('Edit your comment:', comment.content || '');
-if (next === null) return;
-const trimmed = String(next).trim();
-if (!trimmed) return;
-
-try {
-await api.updateComment(commentId, trimmed);
-post.comments = post.comments.map((raw) => {
-const c = normalizeComment(raw);
-if (Number(c.id) !== Number(commentId)) return raw;
-return {
-...raw,
-comment: trimmed,
-content: trimmed,
-text: trimmed
-};
-});
-const openIds = getOpenCommentPostIds();
-renderFeed();
-restoreOpenCommentPostIds(openIds);
-showStatus('Comment updated');
-} catch (error) {
-showStatus('Error: ' + error.message);
-}
-return;
-}
-
-if (button.dataset.deleteComment) {
-const commentId = Number(button.dataset.deleteComment || 0);
-const postId = Number(button.dataset.deletePost || 0);
-if (!commentId || !postId) return;
-const post = posts.find((p) => Number(p.id) === Number(postId));
-if (!post || !Array.isArray(post.comments)) return;
-const shouldDelete = window.confirm('Delete this comment? Replies will also be removed.');
-if (!shouldDelete) return;
-
-try {
-await api.deleteComment(commentId);
-const beforeCount = post.comments.length;
-post.comments = post.comments.filter((raw) => Number(raw.id || normalizeComment(raw).id) !== Number(commentId) && Number(normalizeComment(raw).parentCommentId || 0) !== Number(commentId));
-const removedCount = Math.max(1, beforeCount - post.comments.length);
-setPostCommentCount(post, Math.max(0, getPostCommentCount(post) - removedCount));
-const openIds = getOpenCommentPostIds();
-renderFeed();
-restoreOpenCommentPostIds(openIds);
-showStatus('Comment deleted');
-} catch (error) {
-showStatus('Error: ' + error.message);
-}
-return;
-}
-
-const postId = Number(button.dataset.id || button.dataset.commentPost);
-const post = posts.find((item) => item.id === postId);
-if (!post) return;
-
-if (button.dataset.action === 'like') {
-try {
-const hasLiked = getPostLikedByUser(post);
-if (hasLiked) {
-await api.unlikePost(postId);
-setPostLikedByUser(post, false);
-setPostLikeCount(post, getPostLikeCount(post) - 1);
-showStatus('Like removed');
-} else {
-await api.likePost(postId);
-setPostLikedByUser(post, true);
-setPostLikeCount(post, getPostLikeCount(post) + 1);
-showStatus('Liked!');
-}
-renderFeed();
-} catch (error) {
-showStatus('Error: ' + error.message);
-}
-return;
-}
-
-if (button.dataset.action === 'comment') {
-const commentsDiv = feedEl.querySelector(`[data-comments="${postId}"]`);
-const shouldOpen = !commentsDiv.classList.contains('open');
-commentsDiv.classList.toggle('open', shouldOpen);
-
-if (shouldOpen) {
-try {
-const response = await api.getComments(postId, 50, 0);
-const loadedComments = Array.isArray(response.data) ? response.data.map(normalizeComment) : [];
-post.comments = loadedComments;
-post.comments_loaded = true;
-setPostCommentCount(post, loadedComments.length);
-renderFeed();
-const reopened = feedEl.querySelector(`[data-comments="${postId}"]`);
-if (reopened) reopened.classList.add('open');
-} catch (error) {
-console.error('Could not load comments', error);
-}
-}
-return;
-}
-
-if (button.dataset.action === 'delete') {
-if (!isOwnPost(post)) {
-showStatus('You can only delete your own posts');
-return;
-}
-
-const shouldDelete = window.confirm('Delete this post? This cannot be undone.');
-if (!shouldDelete) return;
-
-try {
-await api.deletePost(postId);
-posts = posts.filter((item) => Number(item.id) !== postId);
-postInteractionBaseline.delete(postId);
-renderFeed();
-showStatus('Post deleted');
-} catch (error) {
-showStatus('Error: ' + error.message);
-}
-return;
-}
-
-if (button.dataset.commentPost) {
-const input = feedEl.querySelector(`[data-comment-input="${postId}"]`);
-const comment = input.value.trim();
-if (!comment) return;
-const replyDraft = getReplyDraft(postId);
-const parentCommentId = replyDraft ? Number(replyDraft.commentId) : null;
-
-try {
-const response = await api.createComment(postId, comment, parentCommentId);
-if (!Array.isArray(post.comments)) post.comments = [];
-const serverComment = response?.data ? normalizeComment(response.data) : null;
-post.comments.push(serverComment || {
-id: Number(`9${Date.now().toString().slice(-10)}`),
-username: currentUser?.username || 'You',
-content: comment,
-parentCommentId: parentCommentId || null,
-createdAt: new Date().toISOString()
-});
-if (replyDraft) {
-replyDraftByPostId.delete(postId);
-}
-post.comments_loaded = true;
-setPostCommentCount(post, getPostCommentCount(post) + 1);
-input.value = '';
-showStatus('Comment posted!');
-renderFeed();
-const commentsDiv = feedEl.querySelector(`[data-comments="${postId}"]`);
-if (commentsDiv) commentsDiv.classList.add('open');
-} catch (error) {
-showStatus('Error: ' + error.message);
-}
-}
-});
-
-// Load feed on page load
-async function initFeedPage() {
-await initializeCurrentUser();
-await loadNotifications();
-renderDebugPanel();
-await loadFeed();
-await handleBadgeShareFromChallenges();
-startNotificationStream();
-
-if (currentUserId) {
-const myPosts = await fetchMyPostsForNotifications();
-setBaselineFromPosts(myPosts);
-startLiveInteractionSync();
-}
-}
-
-initFeedPage();
-
+// Notifications toggle
 notifBellBtn.addEventListener('click', () => {
-notifPanel.classList.toggle('open');
-if (notifPanel.classList.contains('open')) {
-markNotificationsRead();
-}
+	notifPanel.classList.toggle('open');
 });
 
-document.addEventListener('click', (event) => {
-if (!event.target.closest('#notifBellBtn') && !event.target.closest('#notifPanel')) {
-notifPanel.classList.remove('open');
-}
+// Load initial feed
+loadFeed();
 
-if (!event.target.closest('[data-emoji-toggle]') && !event.target.closest('[data-emoji-picker]')) {
-feedEl.querySelectorAll('[data-emoji-picker].open').forEach((picker) => {
-picker.classList.remove('open');
-});
-}
-});
-
-// Handle notification deletion
-notifList.addEventListener('click', async (event) => {
-const btn = event.target.closest('button[data-delete-notification]');
-if (!btn) return;
-const id = Number(btn.dataset.deleteNotification || 0);
-if (!id) return;
-
-try {
-await api.deleteNotification(id);
-const removed = notifications.find((n) => Number(n.id) === id);
-notifications = notifications.filter((n) => Number(n.id) !== id);
-if (removed && removed.is_read === false) {
-unreadNotifications = Math.max(0, unreadNotifications - 1);
-}
-renderNotifications();
-showStatus('Notification deleted');
-} catch (error) {
-showStatus('Error: ' + error.message);
-}
-});
+// Refresh feed every 30 seconds
+setInterval(loadFeed, 30000);
 </script>
+
 </body>
 </html>
