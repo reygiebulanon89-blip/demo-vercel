@@ -947,7 +947,7 @@ async function handleForgotPassword() {
   
   try {
     // Call the forgot password API
-    const response = await fetch("api/index.php/auth/forgot-password", {
+    const response = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
