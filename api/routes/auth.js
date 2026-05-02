@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const db = require('../config/database');
+const nodemailer = require('nodemailer');
 
 // Register
 router.post('/register', async (req, res) => {
@@ -163,6 +164,31 @@ router.post('/forgot-password', async (req, res) => {
       [email.toLowerCase(), token, expires]
     );
 
+    // Send email using Nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASSWORD
+      }
+    });
+
+    const resetLink = `${req.protocol}://${req.get('host')}/reset-password.html?token=${token}`;
+
+    const mailOptions = {
+      from: `"WasteLess" <${process.env.SMTP_EMAIL}>`,
+      to: email.toLowerCase(),
+      subject: 'WasteLess - Password Reset Request',
+      html: `
+        <h2>Password Reset Request</h2>
+        <p>You requested to reset your password for WasteLess. Click the link below to set a new password:</p>
+        <p><a href="${resetLink}">Reset Password</a></p>
+        <p>This link will expire in 1 hour. If you did not request this, please ignore this email.</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+
     res.json({
       status: 'success',
       message: 'Password reset link has been sent to your email.'
@@ -170,6 +196,51 @@ router.post('/forgot-password', async (req, res) => {
 
   } catch (error) {
     console.error('Forgot password error:', error);
+    res.status(500).json({ status: 'error', message: 'Error processing request' });
+  }
+});
+
+// Reset Password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ status: 'error', message: 'Token and new password are required' });
+    }
+
+    if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      return res.status(400).json({ status: 'error', message: 'Password must be at least 8 characters with uppercase, lowercase, and number' });
+    }
+
+    // Verify token
+    const result = await db.query(
+      'SELECT email FROM password_resets WHERE token = $1 AND expires > NOW()',
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ status: 'error', message: 'Invalid or expired reset token' });
+    }
+
+    const email = result.rows[0].email;
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user password
+    await db.query(
+      'UPDATE users SET password = $1 WHERE email = $2',
+      [hashedPassword, email]
+    );
+
+    // Delete used token
+    await db.query('DELETE FROM password_resets WHERE email = $1', [email]);
+
+    res.json({ status: 'success', message: 'Password has been reset successfully' });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ status: 'error', message: 'Error processing request' });
   }
 });
