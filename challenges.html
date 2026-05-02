@@ -1258,7 +1258,7 @@ function getBadgeMetrics() {
 const BADGE_RULES = [
   { name: 'First Entry', icon: '🌱', hint: 'Log progress for any challenge once.', when: (m) => m.totalProgressDays >= 1 },
   { name: 'First Challenge', icon: '🏆', hint: 'Complete 1 challenge.', when: (m) => m.completedCount >= 1 },
-  { name: 'No Plastic Day', icon: '🚫', hint: 'Log at least 1 day in "No Plastic for 3 Days".', when: (m) => (challengeState.progressByChallengeId.plastic3 || 0) >= 1 },
+  { name: 'No Plastic Day', icon: '🚫', hint: 'Complete "No Plastic for 3 Days".', when: (m) => m.completedSet.has('plastic3') },
   { name: 'Plastic Free 3D', icon: '♻️', hint: 'Complete "No Plastic for 3 Days".', when: (m) => m.completedSet.has('plastic3') },
   { name: 'Water Conscious', icon: '💧', hint: 'Complete a water-focused challenge.', when: (m) => m.completedSet.has('water3') || m.completedSet.has('wash2') },
   { name: 'Low Water', icon: '💦', hint: 'Complete both water challenges.', when: (m) => m.completedSet.has('water3') && m.completedSet.has('wash2') },

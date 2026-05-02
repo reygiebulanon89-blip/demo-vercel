@@ -71,11 +71,12 @@ router.get('/stats', authenticate, async (req, res) => {
       [req.user.id]
     );
     
-    // Get challenges completed (placeholder - would need challenge tracking)
+    // Get challenges completed (only where progress has met or exceeded the goal)
     const challengesResult = await db.query(
       `SELECT COUNT(DISTINCT cp.challenge_id) as challenges_completed 
        FROM challenge_participants cp 
-       WHERE cp.user_id = $1`,
+       JOIN challenges c ON cp.challenge_id = c.id
+       WHERE cp.user_id = $1 AND cp.progress >= c.goal`,
       [req.user.id]
     );
     
