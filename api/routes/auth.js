@@ -120,4 +120,58 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ status: 'error', message: 'Email is required' });
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid email format.' });
+    }
+
+    // Check if user exists
+    const users = await db.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()]);
+    if (users.rows.length === 0) {
+      return res.json({ status: 'success', message: 'If the email exists, a reset link will be sent.' });
+    }
+
+    // Create password_resets table if not exists
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS password_resets (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        expires TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Generate token
+    const crypto = require('crypto');
+    const token = crypto.randomBytes(32).toString('hex');
+    
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 1);
+
+    // Save token
+    await db.query(
+      'INSERT INTO password_resets (email, token, expires) VALUES ($1, $2, $3)',
+      [email.toLowerCase(), token, expires]
+    );
+
+    res.json({
+      status: 'success',
+      message: 'Password reset link has been sent to your email.'
+    });
+
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ status: 'error', message: 'Error processing request' });
+  }
+});
+
 module.exports = router;
