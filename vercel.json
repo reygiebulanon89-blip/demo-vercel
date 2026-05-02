@@ -33,6 +33,8 @@
     }
   ],
   "env": {
-    "DATABASE_URL": "postgresql://neondb_owner:npg_t1wevnf0mSEr@ep-noisy-term-anfvhehm-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    "DATABASE_URL": "postgresql://neondb_owner:npg_t1wevnf0mSEr@ep-noisy-term-anfvhehm-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+    "SMTP_EMAIL": "michaelangelojayuma1@gmail.com",
+    "SMTP_PASSWORD": "jfep pbjh byhn pqae"
   }
 }
